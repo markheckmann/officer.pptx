@@ -1,5 +1,4 @@
 test_that("text replace work without erros", {
-
   run_example <- \() {
     file_in <- example_file("example_01")
     file_out <- tempfile(fileext = ".pptx")

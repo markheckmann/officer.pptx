@@ -1,4 +1,3 @@
-
 assert_class <- function(x, class) {
   if (!inherits(x, class)) {
     cli::cli_abort("{.arg x} must be an object of type {.val {class}}")
@@ -13,7 +12,7 @@ assert_class <- function(x, class) {
 
 
 # not in
-`%nin%` = Negate(`%in%`)
+`%nin%` <- Negate(`%in%`)
 
 
 #' Open local file
@@ -53,7 +52,7 @@ file_open <- function(path) {
 example_file <- function(name = NULL) {
   path <- system.file("ext", package = "officer.pptx")
   files <- list.files(path, pattern = ".pptx", full.names = TRUE)
-  if (is.null(name)){
+  if (is.null(name)) {
     cli::cli_alert_info("Available example files:")
     return(basename(files))
   }
@@ -63,5 +62,3 @@ example_file <- function(name = NULL) {
   }
   files[i]
 }
-
-

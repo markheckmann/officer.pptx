@@ -20,7 +20,9 @@ are processes.}
 using the \code{pattern} and \code{replacement} args.}
 }
 \description{
-Replace text on slides
+All occurences of \code{pattern} on the selected slides are replaced with the text of \code{replacement}.
+For the formatting, only the first character of the matched pattern is relevant.
+The whole replacement will have this format.
 }
 \examples{
 # Some example file

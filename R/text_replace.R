@@ -1,4 +1,4 @@
-
+# ____________----
 # HELPERS --------------------------------------------
 
 
@@ -11,17 +11,15 @@ pptx_shapes_on_slide <- function(x, slide_idx) {
 }
 
 
-
+# ____________----
 # REPLACE TEXT --------------------------------------------
-
-# the only relevant character is the first character of pattern (i.e. usually the delimiter)
-# 1. find run with start of pattern position
-# 2. delete rest of pattern from the run (and other runs)
-# 3. insert the whole replacement at the position of first pattern character
-# 4. (insert new run with defined run properties)
 
 
 #' Replace text on slides
+#'
+#' All occurences of `pattern` on the selected slides are replaced with the text of `replacement`.
+#' For the formatting, only the first character of the matched pattern is relevant.
+#' The whole replacement will have this format.
 #'
 #' @param x `[rpptx]`\cr An [officer] object. See [officer::read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
@@ -73,9 +71,13 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
   text <- original <- run_idx <- NULL
   # get texts from all runs, concatenate and find pattern
   runs <- xml_get_runs(shape)
-  runs_text <- runs |> xml2::xml_text() |> stats::setNames(paste0("r_", seq_along(runs)))
+  runs_text <- runs |>
+    xml2::xml_text() |>
+    stats::setNames(paste0("r_", seq_along(runs)))
   text_old <- paste0(runs_text, collapse = "")
-  pattern_loc <- stringr::str_locate(text_old, pattern = stringr::fixed(pattern)) |> as.list() |> stats::setNames(c("from", "to"))
+  pattern_loc <- stringr::str_locate(text_old, pattern = stringr::fixed(pattern)) |>
+    as.list() |>
+    stats::setNames(c("from", "to"))
   if (all(is.na(pattern_loc))) {
     cli::cli_alert_info("No pattern to replace.")
     return(invisible(NULL))
@@ -83,29 +85,32 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
 
   # split up text into chars
   df_runs <- dplyr::tibble(run_idx = seq_along(runs_text), text = runs_text)
-  df <- df_runs |> dplyr::mutate(original = strsplit(text, "")) |> tidyr::unnest(original)
+  df <- df_runs |>
+    dplyr::mutate(original = strsplit(text, "")) |>
+    tidyr::unnest(original)
   chars_new <- strsplit(replacement, "") |> unlist()
   n_new <- length(chars_new)
   if (replacement == "") { # handle edge case of zero length replacement
     chars_new <- ""
-    n_new <- 1  # keep this row
+    n_new <- 1 # keep this row
   }
   # cli::cli_alert_info("Before: {text_old}")
 
   # 1. find run with start of pattern position
   # 2. delete rest of pattern from the run (and other runs)
   # 3. insert the whole replacement at the position of first pattern character
+  # 4. (insert new run with defined run properties) => not implemented
   ii_pattern <- do.call(seq, pattern_loc)
-  i_first  <- ii_pattern |> utils::head(1)
-  ii_remove <- ii_pattern |> utils::tail(-1)  # remove all but first character from pattern
+  i_first <- ii_pattern |> utils::head(1)
+  ii_remove <- ii_pattern |> utils::tail(-1) # remove all but first character from pattern
   .df <- df
-  if (length(ii_remove) > 0) {  # one char patterns need no removing of rows
+  if (length(ii_remove) > 0) { # one char patterns need no removing of rows
     .df <- .df[-ii_remove, ]
   }
   .df <- df_row_repeat(.df, idx = i_first, times = n_new)
   ii_replace <- seq(i_first, i_first + n_new - 1)
   .df$replacement <- .df$original
-  .df$replacement[ii_replace]  <- chars_new
+  .df$replacement[ii_replace] <- chars_new
   .df_runs <- .df |> dplyr::summarise(
     .by = run_idx,
     dplyr::across(c(original, replacement), glue::glue_collapse)
@@ -116,12 +121,14 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
     dplyr::select(-original)
   # text_new <- paste0(df_all$replacement, collapse = "")
   # cli::cli_alert_info("After:  {text_new}")
-  xml2::xml_text(runs) <- df_all$replacement  # NOTE: empty runs are not deleted currently
+  xml2::xml_text(runs) <- df_all$replacement # NOTE: empty runs are not deleted currently
 }
 
 
 .xml_shape_text_replace_all <- function(shape, pattern, replacement) {
-  all_text <- xml_get_runs(shape) |> xml2::xml_text() |> paste0(collapse = "")
+  all_text <- xml_get_runs(shape) |>
+    xml2::xml_text() |>
+    paste0(collapse = "")
   n_matches <- stringr::str_count(all_text, pattern = stringr::fixed(pattern))
   cli::cli_alert_info("Replace {.val {n_matches}} times {.val {pattern}} => {.val {replacement}}")
   for (i in seq_len(n_matches)) {
@@ -133,7 +140,10 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
 xml_shape_text_replace_all <- function(shape, pattern = NULL, replacement = NULL, ...) {
   dots <- rlang::dots_list(...)
   pattern <- c(pattern, names(dots))
-  dots_replacement <- dots |> unlist() |> unname() |> as.character()
+  dots_replacement <- dots |>
+    unlist() |>
+    unname() |>
+    as.character()
   replacement <- c(replacement, dots_replacement)
   if (length(pattern) != length(replacement)) {
     stop("Length of pattern and replacement must match")
