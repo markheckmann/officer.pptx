@@ -1,0 +1,26 @@
+Package: officer.pptx
+Type: Package
+Title: Add-on functions to work with PPTX and officer package
+Version: 0.1.0
+Author: Mark Heckmann <heckmann.mark@gmail.com>
+Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
+Description: Add-on functions to work with PPTX and officer package.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+  officer,
+  rlang,
+  cli,
+  utils,
+  dplyr,
+  xml2,
+  stringr,
+  checkmate, 
+  glue, 
+  tidyr
+RoxygenNote: 7.3.0
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
