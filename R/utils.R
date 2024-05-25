@@ -39,11 +39,27 @@ file_open <- function(path) {
 }
 
 
+# path: path to file folder
+folder_files <- function(path, name = NULL, pattern = ".pptx", fun = "example_file") {
+  files <- list.files(path, pattern = pattern, full.names = TRUE)
+  if (is.null(name)) {
+    cli::cli_alert_info("Available files:")
+    return(basename(files))
+  }
+  i <- pmatch(name, basename(files))
+  if (is.na(i)) {
+    cli::cli_alert_danger("No file containing {.val {name}} found. Type {.arg {fun}()} for available files.")
+  }
+  files[i]
+}
+
+
 #' Get path to example files
 #'
 #' Run without args (`example_file()`) to get a list of available example files.
 #'
 #' @param name `[character]`\cr Name of file. Partial matches are allowed.
+#' @returns Path to PPTX sample file.
 #' @export
 #' @examples
 #' example_file()
@@ -51,14 +67,22 @@ file_open <- function(path) {
 #'
 example_file <- function(name = NULL) {
   path <- system.file("ext", package = "officer.pptx")
-  files <- list.files(path, pattern = ".pptx", full.names = TRUE)
-  if (is.null(name)) {
-    cli::cli_alert_info("Available example files:")
-    return(basename(files))
-  }
-  i <- pmatch(name, basename(files))
-  if (is.na(i)) {
-    cli::cli_alert_danger("No example file containing {.val {name}}. Type {.arg example_file()} for available files.")
-  }
-  files[i]
+  folder_files(path, name = name, pattern = ".pptx", fun = "example_file")
+}
+
+
+#' Get path to test files
+#'
+#' Run without args (`test_file()`) to get a list of available example files.
+#' @inheritParams example_file
+#' @returns Path to PPTX test file.
+#' @export
+#' @keywords internal
+#' @examples
+#' test_file()
+#' test_file("testdata_01")
+#'
+test_file <- function(name = NULL) {
+  path <- system.file("ext/testdata", package = "officer.pptx")
+  folder_files(path, name = name, pattern = ".pptx", fun = "test_file")
 }

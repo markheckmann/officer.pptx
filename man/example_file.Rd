@@ -9,6 +9,9 @@ example_file(name = NULL)
 \arguments{
 \item{name}{\verb{[character]}\cr Name of file. Partial matches are allowed.}
 }
+\value{
+Path to PPTX sample file.
+}
 \description{
 Run without args (\code{example_file()}) to get a list of available example files.
 }

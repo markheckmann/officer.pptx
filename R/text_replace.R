@@ -1,17 +1,4 @@
 # ____________----
-# HELPERS --------------------------------------------
-
-
-# get all shapes on slide
-pptx_shapes_on_slide <- function(x, slide_idx) {
-  assert_class(x, "rpptx")
-  slide <- x$slide$get_slide(slide_idx)
-  xml_doc <- slide$get()
-  xml_get_shapes(xml_doc)
-}
-
-
-# ____________----
 # REPLACE TEXT --------------------------------------------
 
 
