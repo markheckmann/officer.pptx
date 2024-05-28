@@ -14,7 +14,7 @@ pptx_text_replace(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...)
 \item{replacement}{\verb{[character]}\cr Vector with replacements.}
 
 \item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default), all slides
-are processes.}
+are processed.}
 
 \item{...}{\verb{[key=value]}\cr Comma separated \code{'pattern'='replacement'} pairs as an alternative to
 using the \code{pattern} and \code{replacement} args.}
@@ -27,12 +27,12 @@ The whole replacement will have this format.
 \examples{
 # Some example file
 
-file_in <- example_file("example_01")
+file_in <- example_file("text_replace")
 file_out <- tempfile(fileext = ".pptx")
 
 # file_open(file_in)
 
-x <- read_pptx(file_in)
+x <- pptx_read(file_in)
 x <- pptx_text_replace(x, "@" = ">>>", "{1}" = ":)")
 print(x, target = file_out)
 

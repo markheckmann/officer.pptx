@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom stats setNames
 #' @importFrom xml2 xml_attr
 #' @importFrom xml2 xml_attr<-
 #' @importFrom xml2 xml_child
@@ -10,4 +11,5 @@
 #' @importFrom xml2 xml_remove
 #' @importFrom xml2 xml_text
 ## usethis namespace: end
+#' @import officer
 NULL

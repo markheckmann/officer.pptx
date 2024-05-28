@@ -17,6 +17,6 @@ Run without args (\code{example_file()}) to get a list of available example file
 }
 \examples{
 example_file()
-example_file("example_01")
+example_file("text_replace")
 
 }

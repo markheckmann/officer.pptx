@@ -2,9 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{test_file}
 \alias{test_file}
+\alias{test_image}
 \title{Get path to test files}
 \usage{
 test_file(name = NULL)
+
+test_image(name = NULL)
 }
 \arguments{
 \item{name}{\verb{[character]}\cr Name of file. Partial matches are allowed.}
@@ -13,11 +16,14 @@ test_file(name = NULL)
 Path to PPTX test file.
 }
 \description{
-Run without args (\code{test_file()}) to get a list of available example files.
+Run without args (\code{test_file()}, \code{test_image()}) to get a list of available test files.
 }
 \examples{
 test_file()
 test_file("testdata_01")
+
+test_image()
+test_image("flag_de")
 
 }
 \keyword{internal}

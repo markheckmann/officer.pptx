@@ -12,7 +12,7 @@
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
 #' @param replacement `[character]`\cr Vector with replacements.
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
-#'   are processes.
+#'   are processed.
 #' @param ... `[key=value]`\cr Comma separated `'pattern'='replacement'` pairs as an alternative to
 #' using the `pattern` and `replacement` args.
 #' @export

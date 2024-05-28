@@ -63,7 +63,7 @@ folder_files <- function(path, name = NULL, pattern = ".pptx", fun = "example_fi
 #' @export
 #' @examples
 #' example_file()
-#' example_file("example_01")
+#' example_file("text_replace")
 #'
 example_file <- function(name = NULL) {
   path <- system.file("ext", package = "officer.pptx")
@@ -73,16 +73,29 @@ example_file <- function(name = NULL) {
 
 #' Get path to test files
 #'
-#' Run without args (`test_file()`) to get a list of available example files.
+#' Run without args (`test_file()`, `test_image()`) to get a list of available test files.
 #' @inheritParams example_file
 #' @returns Path to PPTX test file.
 #' @export
 #' @keywords internal
+#' @rdname test-files
 #' @examples
 #' test_file()
 #' test_file("testdata_01")
 #'
+#' test_image()
+#' test_image("flag_de")
+#'
 test_file <- function(name = NULL) {
   path <- system.file("ext/testdata", package = "officer.pptx")
   folder_files(path, name = name, pattern = ".pptx", fun = "test_file")
+}
+
+
+#' @export
+#' @keywords internal
+#' @rdname test-files
+test_image <- function(name = NULL) {
+  path <- system.file("ext/testimages", package = "officer.pptx")
+  folder_files(path, name = name, pattern = ".png|.jpeg", fun = "test_file")
 }

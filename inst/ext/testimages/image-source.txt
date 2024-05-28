@@ -1,0 +1,8 @@
+
+
+dog_1: https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Puppy.png/640px-Puppy.png
+dog_2: https://commons.wikimedia.org/wiki/File:Transparent-jack-russell-puppy-dog.png
+flag_de: https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/320px-Flag_of_Germany.svg.png
+flag_eu: https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/320px-Flag_of_Europe.svg.png
+
+
