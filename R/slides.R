@@ -13,9 +13,6 @@
 #' @param highlight TBD
 #' @export
 pptx_slide_draw <- function(x, slide_idx, highlight = NULL) {
-
   w <- slide_size(x)
   layout_summary(x) # layou summary shown  in print
-
-
 }

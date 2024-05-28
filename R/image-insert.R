@@ -30,12 +30,14 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
   slide_idx <- slide_idx %||% seq_along(x)
   ii <- seq_along(image)
   for (s_idx in slide_idx) {
-    x$cursor <- s_idx  # necessary as used by
+    x$cursor <- s_idx # necessary as used by
     for (i in ii) {
-      cat("\rs_idx:", s_idx,  "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
-      .pptx_image_insert_at_shape_on_slide(x, image = image[i], pattern =  pattern[i], slide_idx = s_idx,
-                                           scale = scale, h_just = h_just, v_just = v_just,
-                                           x_offset = x_offset, y_offset = y_offset, fit_inside = fit_inside)
+      cat("\rs_idx:", s_idx, "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
+      .pptx_image_insert_at_shape_on_slide(x,
+        image = image[i], pattern = pattern[i], slide_idx = s_idx,
+        scale = scale, h_just = h_just, v_just = v_just,
+        x_offset = x_offset, y_offset = y_offset, fit_inside = fit_inside
+      )
       # shapes <- x |> pptx_shapes_on_slide(slide_idx = idx, pattern = pattern[i])
       # x <- xml_add_image_at_shape(x, image[i], shapes, )
     }
@@ -79,9 +81,11 @@ xml_add_image_at_shape <- function(x, img_path, shape, ...) {
 #' @param unit `[character]`\cr Not yet used.
 #' @keywords internal
 frame <- function(left, top, width, height, unit = NA) {
-  x <- list(left = as.numeric(left),
-            top = as.numeric(top),
-            width = as.numeric(width), height = as.numeric(height), unit = unit)
+  x <- list(
+    left = as.numeric(left),
+    top = as.numeric(top),
+    width = as.numeric(width), height = as.numeric(height), unit = unit
+  )
   class(x) <- c("frame", "list")
   x
 }
@@ -210,10 +214,9 @@ read_image <- function(path) {
     cli::cli_abort("File format {.val .{ext}} is not allowed. Only {.val {ext_allowed}}")
   }
   reader <- switch(ext,
-                   jpg = jpeg::readJPEG,
-                   jpeg = jpeg::readJPEG,
-                   png = png::readPNG
+    jpg = jpeg::readJPEG,
+    jpeg = jpeg::readJPEG,
+    png = png::readPNG
   )
   reader(path)
 }
-

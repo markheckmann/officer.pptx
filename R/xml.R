@@ -133,14 +133,14 @@ pptx_shapes_on_slide <- function(x, slide_idx, pattern = NULL) {
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
 #' @export
 #' @rdname shapes-hide-unhide
-pptx_shapes_hide_temp <-function(x, pattern, slide_idx = NULL) {
+pptx_shapes_hide_temp <- function(x, pattern, slide_idx = NULL) {
   .pptx_hide_unhide_shapes("hide", x, pattern, slide_idx)
 }
 
 
 #' @export
 #' @rdname shapes-hide-unhide
-pptx_shapes_unhide_temp <-function(x, pattern, slide_idx = NULL) {
+pptx_shapes_unhide_temp <- function(x, pattern, slide_idx = NULL) {
   .pptx_hide_unhide_shapes("unhide", x, pattern, slide_idx)
 }
 
@@ -148,10 +148,13 @@ pptx_shapes_unhide_temp <-function(x, pattern, slide_idx = NULL) {
 .pptx_hide_unhide_shapes <- function(action = "hide", x, pattern, slide_idx = NULL, ...) {
   assert_class(x, "rpptx")
   action <- match.arg(action, c("hide", "unhide"))
-  .fun <- switch(action, hide = xml_shape_hide, unhide = xml_shape_unhide)
+  .fun <- switch(action,
+    hide = xml_shape_hide,
+    unhide = xml_shape_unhide
+  )
   slide_idx <- slide_idx %||% seq_along(x)
   for (s_idx in slide_idx) {
-    x$cursor <- s_idx  # necessary for officer functions
+    x$cursor <- s_idx # necessary for officer functions
     for (i in seq_along(pattern)) {
       shapes <- x |> pptx_shapes_on_slide(slide_idx = s_idx, pattern = pattern[i])
       .fun(shapes)
