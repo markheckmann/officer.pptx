@@ -1,19 +1,47 @@
 # ____________----
 # HELPERS ---------------------------------------------
 
+# EMUs (English Metric Unit)
+
 emu_to_inch <- function(x) {
   x / 914400
 }
 
+
+emu_to_cm <- function(x) {
+  x / 360000
+}
 
 cm_to_inch <- function(x) {
   x * .39370078740157
 }
 
 
+cm_to_emu <- function(x) {
+  x * 360000
+}
+
 
 # ____________----
 # XML --------------------------------------------
+
+### runs ----
+
+# get runs
+# x : node or nodeset
+xml_get_runs <- function(x) {
+  xml_find_all(x, ".//a:p/a:r")
+}
+
+### images ----
+
+# get images from node
+# x : node or nodeset
+xml_get_images <- function(x) {
+  xml_find_all(x, ".//p:pic") # // also finds shapes inside groups; maybe only use ".//p:spTree//p:sp"?
+}
+
+### shapes ----
 
 
 # get shapes from node
@@ -23,11 +51,7 @@ xml_get_shapes <- function(x) {
 }
 
 
-# get runs
-# x : node or nodeset
-xml_get_runs <- function(x) {
-  xml_find_all(x, ".//a:p/a:r")
-}
+
 
 
 # filter shapes by text pattern
@@ -95,7 +119,7 @@ xml_shape_remove <- function(shape) {
 
 read_xfrm <- getFromNamespace("read_xfrm", ns = "officer")
 
-# get xfrm info fron shape node
+# get xfrm info from shape node
 # xfrm into: http://officeopenxml.com/drwSp-size.php
 # TODO: placeholders to not always have xrfm
 xml_shape_get_frame <- function(shape) {
@@ -105,7 +129,32 @@ xml_shape_get_frame <- function(shape) {
     emu_to_inch() |>
     setNames(c("left", "top", "width", "height")) |>
     as.list()
-  p
+  do.call(frame, p)
+}
+
+
+# extract infos form a shape
+xml_shape_info <- function(shape) {
+  nvpr <- shape |> xml2::xml_find_first(".//p:cNvPr")
+  id <- nvpr |> xml2::xml_attr("id")
+  name <- nvpr |> xml2::xml_attr("name")
+  text <- shape |> xml_text()
+  ph <- shape |> xml_is_placeholder()
+
+  prst_geom <- shape |> xml2::xml_find_first(".//a:prstGeom")  # Preset Geometry
+  geom <- prst_geom |> xml2::xml_attr("prst")
+
+  list(id = id, ph = ph, name = name, text = text, geom = geom)
+}
+
+
+xml_is_placeholder <- function(node) {
+  !is.na(node |> xml_find_first(".//p:nvPr/p:ph"))
+}
+
+
+xml_placeholder_type <- function(node) {
+  node |> xml_find_first(".//p:nvPr/p:ph") |> xml_attr("type")
 }
 
 
@@ -161,4 +210,60 @@ pptx_shapes_unhide_temp <- function(x, pattern, slide_idx = NULL) {
     }
   }
   x
+}
+
+
+# get all shapes on slide
+pptx_images_on_slide <- function(x, slide_idx, pattern = NULL) {
+  pptx_slide_get(x, slide_idx) |> xml_get_images()
+  # shapes |> xml_shapes_filter(pattern)
+}
+
+
+
+
+# extract size and position from shape and convert to frame
+frame_from_shape <- function(shape) {
+  l <- xml_shape_get_frame(shape)
+  do.call(frame, l)
+}
+
+
+# shapes objects plus additional information
+pptx_shapes_info <- function(x, slide_idx = NULL, unnest = TRUE, as_list = FALSE, ...) {
+  assert_class(x, "rpptx")
+  slide_idx <- slide_idx %||% seq_len(x$slide$length())
+  nodesets <- lapply(slide_idx, \(idx) pptx_shapes_on_slide(x, idx))
+  nodes <- lapply(nodesets, \(ns) lapply(ns, identity))
+
+  df <- tibble(slide_idx = slide_idx, type = "shape", node = nodes) |> unnest(node)
+  df$info <- lapply(df$node, xml_shape_info)
+  df$frame <- lapply(df$node, frame_from_shape)
+  if (unnest) {
+    df <- df |> unnest_wider(c(frame, info))
+  }
+  if (as_list) {
+    df <- df |> purrr::transpose()
+  }
+  df
+}
+
+
+# image info plus additional information
+pptx_images_info <- function(x, slide_idx = NULL, unnest = TRUE, as_list = FALSE, ...) {
+  assert_class(x, "rpptx")
+  slide_idx <- slide_idx %||% seq_len(x$slide$length())
+  nodesets <- lapply(slide_idx, \(idx) pptx_images_on_slide(x, idx))
+  nodes <- lapply(nodesets, \(ns) lapply(ns, identity))
+
+  df <- tibble(slide_idx = slide_idx, type = "image", node = nodes) |> unnest(node)
+  df$info <- lapply(df$node, xml_shape_info)
+  df$frame <- lapply(df$node, frame_from_shape)
+  if (unnest) {
+    df <- df |> unnest_wider(c(frame, info))
+  }
+  if (as_list) {
+    df <- df |> purrr::transpose()
+  }
+  df
 }

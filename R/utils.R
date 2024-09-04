@@ -97,5 +97,5 @@ test_file <- function(name = NULL) {
 #' @rdname test-files
 test_image <- function(name = NULL) {
   path <- system.file("ext/testimages", package = "officer.pptx")
-  folder_files(path, name = name, pattern = ".png|.jpeg", fun = "test_file")
+  folder_files(path, name = name, pattern = ".png|.jpeg|.jpg", fun = "test_file")
 }

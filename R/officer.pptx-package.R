@@ -2,14 +2,13 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom dplyr bind_cols
+#' @importFrom dplyr bind_rows
+#' @importFrom dplyr mutate
+#' @importFrom dplyr tibble
 #' @importFrom stats setNames
-#' @importFrom xml2 xml_attr
-#' @importFrom xml2 xml_attr<-
-#' @importFrom xml2 xml_child
-#' @importFrom xml2 xml_find_all
-#' @importFrom xml2 xml_name
-#' @importFrom xml2 xml_remove
-#' @importFrom xml2 xml_text
+#' @importFrom tidyr unnest
+#' @importFrom tidyr unnest_wider
 ## usethis namespace: end
-#' @import officer
+#' @import officer xml2
 NULL

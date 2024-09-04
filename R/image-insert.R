@@ -53,7 +53,6 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
 }
 
 
-
 .xml_add_image_at_shape <- function(x, img_path, shape, ...) {
   f_target <- xml_shape_get_frame(shape)
   f_source <- frame_from_image(img_path)
@@ -62,13 +61,14 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
   ph_with(x, external_img(img_path), location = loc)
 }
 
-.xml_add_image_at_shape_vec <- Vectorize(.xml_add_image_at_shape, vectorize.args = c("img_path", "shape"))
+.xml_add_image_at_shape_vec <- Vectorize(.xml_add_image_at_shape, vectorize.args = c("img_path", "shape"), SIMPLIFY = FALSE)
 
 
 xml_add_image_at_shape <- function(x, img_path, shape, ...) {
   .xml_add_image_at_shape_vec(x, img_path, shape, ...)
   x
 }
+
 
 
 
@@ -162,7 +162,6 @@ frame_scale_to_target <- function(f_source, f_target, fit_inside = TRUE) {
 
 #' Adjust frame so it fits into target frame
 #'
-#' @details
 #' Order of operations:
 #' 1. adjust size to target frame
 #' 2. scale size by factor

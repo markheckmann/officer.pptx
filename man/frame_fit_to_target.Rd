@@ -29,9 +29,6 @@ frame_fit_to_target(
 If \code{FALSE}, scale frame, so it contains the target frame.}
 }
 \description{
-Adjust frame so it fits into target frame
-}
-\details{
 Order of operations:
 \enumerate{
 \item adjust size to target frame

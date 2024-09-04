@@ -1,3 +1,5 @@
 # TODO
 
-- TBD
+- 
+- draw slides (wireframe)
+- cropping feature for images

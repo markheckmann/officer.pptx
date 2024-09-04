@@ -14,21 +14,18 @@ rpptx_print <- getFromNamespace("print.rpptx", "officer")
 #' @export
 print.rpptx <- function(x, target = NULL, details = FALSE, ...) {
   if (!is.null(target)) {
-    return(rpptx_print(x, target = NULL, ...)) # save object
+    return(rpptx_print(x, target = target, ...)) # save object
   }
   cli::cli_h3("rpptx object")
   df <- officer::layout_summary(x)
-  n_masters <- df$master |>
-    unique() |>
-    length()
+  n_layouts_per_master <- sapply(split(df, df$master), nrow)
+  n_layouts <- glue::glue("{n_layouts_per_master} [{names(n_layouts_per_master)}]")
   n_slides <- length(x)
-  n_layouts <- nrow(df)
   active_slide <- x$cursor
   bullets <- c(
-    "masters: {.val {n_masters}}",
-    "layouts: {.val {n_layouts}}",
     "slides: {.val {n_slides}}",
-    "active slide: {.val {active_slide}}"
+    "active slide: {.val {active_slide}}",
+    "layouts: {.val {n_layouts}}"
   )
   names(bullets) <- rep("*", length(bullets))
   cli::cli_bullets(bullets)
