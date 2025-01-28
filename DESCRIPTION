@@ -1,7 +1,7 @@
 Package: officer.pptx
 Type: Package
 Title: Add-on functions to work with PPTX and officer package
-Version: 0.1.0
+Version: 0.1.1.9001
 Author: Mark Heckmann <heckmann.mark@gmail.com>
 Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
 Description: Add-on functions to work with PPTX and officer package.
@@ -22,7 +22,7 @@ Imports:
     stats,
     png,
     jpeg
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

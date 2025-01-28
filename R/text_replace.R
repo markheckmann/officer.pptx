@@ -21,8 +21,8 @@ pptx_text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx =
   assert_class(x, "rpptx")
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
   nodesets <- lapply(slide_idx, \(idx) pptx_shapes_on_slide(x, idx))
-  for (i in slide_idx) {
-    cli::cli_h3("Slide {i}")
+  for (i in seq_along(slide_idx)) {
+    cli::cli_h3("Slide {slide_idx[i]}")
     xml_shape_text_replace_all(nodesets[[i]], pattern = pattern, replacement = replacement, ...)
   }
   x

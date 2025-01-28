@@ -1,5 +1,6 @@
 # officer.pptx 0.1.0
 
+* `ph_with_2`: simplified adding of objects to a slide using key-value pair syntax.
 * WIP: `pptx_slide_draw`: draw wireframe-like image of elements (shapes, placeholders, images) on a slide.
 * `pptx_image_insert_at_shape_temp`, `pptx_shapes_hide_temp`, and `pptx_shapes_unhide_temp` as drafts
 used in production. Also several helper functions.

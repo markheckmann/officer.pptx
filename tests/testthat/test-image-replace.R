@@ -25,23 +25,19 @@ test_that("inserting sample image at shape position works", {
 
   expect_no_error(run_example())
 
-  xml_content <- '<root><child>Value</child></root>'
+  xml_content <- "<root><child>Value</child></root>"
   xml_doc <- read_xml(xml_content)
   node <- xml_find_first(xml_doc, "//child")
 
 
   node <- xml2:::xml_nodeset()
   class(node)
-  .foo <- \(x, y) list(x=x, y=y)
+  .foo <- \(x, y) list(x = x, y = y)
   foo <- Vectorize(.foo, vectorize.args = c("x", "y"), SIMPLIFY = FALSE)
   foo(list(node), 1)
 
 
-  mapply(.foo, x=node)
+  mapply(.foo, x = node)
   x <- foo(node)
   class(x)
-
 })
-
-
-

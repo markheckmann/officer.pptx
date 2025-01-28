@@ -17,5 +17,3 @@ pptx_slide_draw <- function(x, slide_idx, highlight = NULL) {
   layout_summary(x) # layou summary shown  in print
   pptx_shapes_info(x)
 }
-
-

@@ -141,7 +141,7 @@ xml_shape_info <- function(shape) {
   text <- shape |> xml_text()
   ph <- shape |> xml_is_placeholder()
 
-  prst_geom <- shape |> xml2::xml_find_first(".//a:prstGeom")  # Preset Geometry
+  prst_geom <- shape |> xml2::xml_find_first(".//a:prstGeom") # Preset Geometry
   geom <- prst_geom |> xml2::xml_attr("prst")
 
   list(id = id, ph = ph, name = name, text = text, geom = geom)
@@ -154,7 +154,9 @@ xml_is_placeholder <- function(node) {
 
 
 xml_placeholder_type <- function(node) {
-  node |> xml_find_first(".//p:nvPr/p:ph") |> xml_attr("type")
+  node |>
+    xml_find_first(".//p:nvPr/p:ph") |>
+    xml_attr("type")
 }
 
 
