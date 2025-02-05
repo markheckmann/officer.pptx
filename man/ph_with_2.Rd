@@ -37,6 +37,7 @@ on the right.\tabular{lll}{
 }
 
 \examples{
+library(officer)
 x <- read_pptx() |>
   add_slide("Two Content") |>
   ph_with_2(
