@@ -15,11 +15,11 @@ forms are listed in section \code{"Short forms"}.}
 }
 \description{
 A sibling of \link[officer:ph_with]{officer::ph_with} which allows adding several objects to a
-slide at once. Locations are specfied usong the short form syntax. The location and object
+slide at once. Locations are specfied using the short form syntax. The location and object
 are passed as key value pairs in the function call (\code{ph_with_2("short-form" = object)}).
 Under the hood, \link[officer:ph_with]{officer::ph_with} is called for each entry. Note that \code{ph_with_2} does not
-cover all function from the \verb{ph_location_*} and offers less customization. It is meant as
-a comveneicen function for the most common use cases.
+cover all options from the \verb{ph_location_*} family and also less customization. It is meant as
+a covenience wrapper for the most common use cases.
 }
 \section{Short forms}{
 

@@ -1,10 +1,10 @@
 #' @title Add objects to current slide using key value syntax
 #' @description A sibling of [officer::ph_with] which allows adding several objects to a
-#' slide at once. Locations are specfied usong the short form syntax. The location and object
+#' slide at once. Locations are specfied using the short form syntax. The location and object
 #' are passed as key value pairs in the function call (`ph_with_2("short-form" = object)`).
 #' Under the hood, [officer::ph_with] is called for each entry. Note that `ph_with_2` does not
-#' cover all function from the `ph_location_*` and offers less customization. It is meant as
-#' a comveneicen function for the most common use cases.
+#' cover all options from the `ph_location_*` family and also less customization. It is meant as
+#' a covenience wrapper for the most common use cases.
 #' @param x A `rpptx` object.
 #' @param ... Key-value pairs of the form `"short form location" = object`. If the short form is an
 #' integer or a string with blanks, you must wrap it in quotes or backticks. The implemented short
