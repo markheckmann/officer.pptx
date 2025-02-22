@@ -1,8 +1,8 @@
 #' @title Add objects to current slide using key value syntax
 #' @description A sibling of [officer::ph_with] which allows adding several objects to a
 #' slide at once. Locations are specfied using the short form syntax. The location and object
-#' are passed as key value pairs in the function call (`ph_with_2("short-form" = object)`).
-#' Under the hood, [officer::ph_with] is called for each entry. Note that `ph_with_2` does not
+#' are passed as key value pairs in the function call (`phs_with("short-form" = object)`).
+#' Under the hood, [officer::ph_with] is called for each entry. Note that `phs_with` does not
 #' cover all options from the `ph_location_*` family and also less customization. It is meant as
 #' a covenience wrapper for the most common use cases.
 #' @param x A `rpptx` object.
@@ -29,11 +29,11 @@
 #' library(officer)
 #' x <- read_pptx() |>
 #'   add_slide("Two Content") |>
-#'   ph_with_2(
+#'   phs_with(
 #'     `Title 1` = "A title", dt = "Jan. 26, 2025",
 #'     `body[2]` = "Body 2", left = "Left side", `6` = "Footer"
 #'   )
-ph_with_2 <- function(x, ...) {
+phs_with <- function(x, ...) {
   dots <- list(...)
   if (length(dots) == 0) {
     return(x)
