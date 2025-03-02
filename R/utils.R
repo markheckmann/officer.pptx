@@ -40,7 +40,7 @@ file_open <- function(path) {
 
 
 # path: path to file folder
-folder_files <- function(path, name = NULL, pattern = ".pptx", fun = "example_file") {
+folder_files <- function(path, name = NULL, pattern = ".pptx", fun = NULL) {
   files <- list.files(path, pattern = pattern, full.names = TRUE)
   if (is.null(name)) {
     cli::cli_alert_info("Available files:")
@@ -48,54 +48,41 @@ folder_files <- function(path, name = NULL, pattern = ".pptx", fun = "example_fi
   }
   i <- pmatch(name, basename(files))
   if (is.na(i)) {
-    cli::cli_alert_danger("No file containing {.val {name}} found. Type {.arg {fun}()} for available files.")
+    msg <- "No file containing {.val {name}} found."
+    if (!is.null(fun)) {
+      msg <- c(msg, "x" = "Type {.arg {fun}()} for available files.")
+    }
+    cli::cli_abort(msg, call = NULL)
   }
   files[i]
 }
 
 
-#' Get path to example files
+#' Get path to sample files
 #'
-#' Run without args (`example_file()`) to get a list of available example files.
+#' Run without args (`example_pptx()`) to get a list of available example files.
 #'
 #' @param name `[character]`\cr Name of file. Partial matches are allowed.
 #' @returns Path to PPTX sample file.
 #' @export
+#' @rdname example-files
 #' @examples
-#' example_file()
-#' example_file("text_replace")
+#' example_pptx()
+#' example_pptx("text_replace")
 #'
-example_file <- function(name = NULL) {
-  path <- system.file("ext", package = "officer.pptx")
-  folder_files(path, name = name, pattern = ".pptx", fun = "example_file")
-}
-
-
-#' Get path to test files
-#'
-#' Run without args (`test_file()`, `test_image()`) to get a list of available test files.
-#' @inheritParams example_file
-#' @returns Path to PPTX test file.
-#' @export
-#' @keywords internal
-#' @rdname test-files
-#' @examples
-#' test_file()
-#' test_file("testdata_01")
-#'
-#' test_image()
-#' test_image("flag_de")
-#'
-test_file <- function(name = NULL) {
-  path <- system.file("ext/testdata", package = "officer.pptx")
-  folder_files(path, name = name, pattern = ".pptx", fun = "test_file")
+#' example_image()
+#' example_image("dog_1")
+example_pptx <- function(name = NULL) {
+  path <- system.file("ext/pptx", package = "officer.pptx")
+  folder_files(path, name = name, pattern = ".pptx", fun = "example_pptx")
 }
 
 
 #' @export
-#' @keywords internal
-#' @rdname test-files
-test_image <- function(name = NULL) {
-  path <- system.file("ext/testimages", package = "officer.pptx")
-  folder_files(path, name = name, pattern = ".png|.jpeg|.jpg", fun = "test_file")
+#' @rdname example-files
+example_image <- function(name = NULL) {
+  path <- system.file("ext/images", package = "officer.pptx")
+  folder_files(path, name = name, pattern = ".png|.jpg", fun = "example_image")
 }
+
+

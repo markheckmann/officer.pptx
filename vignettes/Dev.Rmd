@@ -1,0 +1,28 @@
+---
+title: "Dev"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Dev}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(officer.pptx)
+```
+
+## Replace text
+
+## Add image
+```{r add-images}
+file <- example_pptx("image_insert")
+browseURL(file)
+```
+

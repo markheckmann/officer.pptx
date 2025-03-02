@@ -16,7 +16,7 @@
 
 test_that("inserting sample image at shape position works", {
   run_example <- \() {
-    x <- example_file("image_insert") |> read_pptx()
+    x <- example_pptx("image_insert") |> read_pptx()
     img_path <- test_image("dog_1")
     df <- pptx_shapes_info(x)
     node <- df$node[[2]]

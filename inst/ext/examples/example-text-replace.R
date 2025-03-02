@@ -1,6 +1,6 @@
 # Some example file
 
-file_in <- example_file("text_replace")
+file_in <- example_pptx("text_replace")
 file_out <- tempfile(fileext = ".pptx")
 
 # file_open(file_in)
