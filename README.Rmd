@@ -13,12 +13,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-# officer.pptx
+# {officer.pptx}
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/markheckmann/officer.pptx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/markheckmann/officer.pptx/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/markheckmann/officer.pptx/branch/main/graph/badge.svg)](https://app.codecov.io/gh/markheckmann/officer.pptx?branch=main)
 <!-- badges: end -->
 
-The goal of `officer.pptx` is to ...
+The goal of `officer.pptx` is to extent pptx related features from the `officer` package and is complelety compatible with it.
+
 
 ## Installation
 

@@ -3,3 +3,5 @@
 ^dev_local
 ^README\.Rmd$
 TODO.md
+^\.github$
+^codecov\.yml$
