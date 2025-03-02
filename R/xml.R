@@ -234,6 +234,7 @@ frame_from_shape <- function(shape) {
 # shapes objects plus additional information
 pptx_shapes_info <- function(x, slide_idx = NULL, unnest = TRUE, as_list = FALSE, ...) {
   assert_class(x, "rpptx")
+  node <- info <- NULL # pass R CMD CHECK
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
   nodesets <- lapply(slide_idx, \(idx) pptx_shapes_on_slide(x, idx))
   nodes <- lapply(nodesets, \(ns) lapply(ns, identity))
@@ -254,6 +255,7 @@ pptx_shapes_info <- function(x, slide_idx = NULL, unnest = TRUE, as_list = FALSE
 # image info plus additional information
 pptx_images_info <- function(x, slide_idx = NULL, unnest = TRUE, as_list = FALSE, ...) {
   assert_class(x, "rpptx")
+  node <- info <- NULL # pass R CMD CHECK
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
   nodesets <- lapply(slide_idx, \(idx) pptx_images_on_slide(x, idx))
   nodes <- lapply(nodesets, \(ns) lapply(ns, identity))
