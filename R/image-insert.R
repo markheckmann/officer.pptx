@@ -54,6 +54,27 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
 
 
 .xml_add_image_at_shape <- function(x, img_path, shape, ...) {
+  if (!is_node(shape)) {
+    cli::cli_abort(
+      c("Incorrect class for {.arg shape}",
+        "i" = "{.arg shape} must have class {.cls <xml_node>}, but found {.cls {class(shape)[1]}}"
+      )
+    )
+  }
+  if (!xml_name(shape) %in% c("sp", "cxnSp")) {
+    cli::cli_abort(
+      c("incorrect type for {.arg shape}",
+        "i" = "{.arg shape} requires be a shape shape but got {.val {xml_name(shape)}}"
+      )
+    )
+  }
+  if (xml_is_placeholder(shape)) {
+    cli::cli_abort(
+      c("{.arg shape} is a placeholder",
+        "i" = "Placeholder shapes are not supported."
+      )
+    )
+  }
   f_target <- xml_shape_get_frame(shape)
   f_source <- frame_from_image(img_path)
   f_fitted <- frame_fit_to_target(f_source, f_target, ...)
@@ -61,15 +82,25 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
   ph_with(x, external_img(img_path), location = loc)
 }
 
-.xml_add_image_at_shape_vec <- Vectorize(.xml_add_image_at_shape, vectorize.args = c("img_path", "shape"), SIMPLIFY = FALSE)
 
-
+# Caveat: Only works for non placeholder shapes.
 xml_add_image_at_shape <- function(x, img_path, shape, ...) {
-  .xml_add_image_at_shape_vec(x, img_path, shape, ...)
+  if (is_node(shape)) {
+    shape <- list(shape)
+  }
+  n <- max(length(img_path), length(shape))
+  img_path <- rep_len(img_path, n)
+  shape <- rep_len(shape, n)
+  for (i in seq(n)) {
+    .xml_add_image_at_shape(x, img_path[[i]], shape[[i]], ...)
+  }
   x
 }
 
 
+is_shape <- function(node) {
+  xml_name(node) %in% c("sp", "cxnSp")
+}
 
 
 # ____________----
@@ -218,4 +249,9 @@ read_image <- function(path) {
     png = png::readPNG
   )
   reader(path)
+}
+
+
+is_node <- function(node) {
+  inherits(node, "xml_node")
 }
