@@ -11,6 +11,46 @@
 # ____________----
 # PPTX --------------------------------------------------
 
+
+#' Insert image at shape position
+#'
+#' @param x `[rpptx]`\cr An [officer] object. See [read_pptx()].
+#' @param image `[character]`\cr Path to image file.
+#' @param pattern `[character]`\cr Vector with patterns to find shapes. Interpreted as regex.
+#' Wrap in [stringr::fixed] for fixed string object or set `fixed = TRUE`.
+#' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
+#'   are processed.
+#' @param fixed `[logical]`\cr Interpret `pattern` as fixed string? (default `TRUE`).
+#' @inheritParams frame_fit_to_target
+#' @export
+#' @example inst/ext/examples/example-text-replace.R
+image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
+                         scale = 1, h_just = 0.5, v_just = 0.5, x_offset = 0, y_offset = 0,
+                         fit_inside = TRUE) {
+  assert_class(x, "rpptx")
+  slide_idx <- slide_idx %||% seq_along(x)
+  if (fixed) {
+    pattern <- stringr::fixed(pattern)
+  }
+  ii <- seq_along(image)
+  for (s_idx in slide_idx) {
+    x$cursor <- s_idx # necessary as used by
+    for (i in ii) {
+      cat("\rs_idx:", s_idx, "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
+      .pptx_image_insert_at_shape_on_slide(x,
+        image = image[i], pattern = pattern[i], slide_idx = s_idx,
+        scale = scale, h_just = h_just, v_just = v_just,
+        x_offset = x_offset, y_offset = y_offset, fit_inside = fit_inside
+      )
+      # shapes <- x |> pptx_shapes_on_slide(slide_idx = idx, pattern = pattern[i])
+      # x <- xml_add_image_at_shape(x, image[i], shapes, )
+    }
+  }
+  x
+}
+
+
+
 #' Insert image at shape position
 #'
 #' @param x `[rpptx]`\cr An [officer] object. See [read_pptx()].
@@ -25,8 +65,10 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
                                             scale = 1, h_just = 0.5,
                                             v_just = 0.5, x_offset = 0, y_offset = 0,
                                             fit_inside = TRUE) {
+  .Deprecated("insert_image", old = "pptx_image_insert_at_shape_temp")
   assert_class(x, "rpptx")
   stopifnot(length(image) == length(pattern))
+  pattern <- stringr::fixed(pattern) # currently not regex
   slide_idx <- slide_idx %||% seq_along(x)
   ii <- seq_along(image)
   for (s_idx in slide_idx) {
@@ -49,7 +91,9 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
 # Insert image in placeholder shape
 .pptx_image_insert_at_shape_on_slide <- function(x, image, pattern, slide_idx, ...) {
   shapes <- x |> pptx_shapes_on_slide(slide_idx, pattern = pattern)
-  xml_add_image_at_shape(x, image, shapes, ...)
+  if (length(shapes) > 0) {
+    xml_add_image_at_shape(x, image, shapes, ...)
+  }
 }
 
 
@@ -217,7 +261,7 @@ frame_fit_to_target <- function(f_source, f_target, scale = 1, h_just = 0.5,
   f_source <- frame_scale(f_source, scale)
 
   f_source$left <- f_source$left + h_just * (f_target$width - f_source$width) # justify horizontally
-  f_source$top <- f_source$top + v_just * (f_target$height - f_source$height) # justify vertically
+  f_source$top <- f_source$top + (1 - v_just) * (f_target$height - f_source$height) # justify vertically
   f_source$left <- f_source$left + x_offset * f_source$width
   f_source$top <- f_source$top + y_offset * f_source$height
   f_source

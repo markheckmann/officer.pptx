@@ -62,7 +62,7 @@ xml_shapes_filter <- function(shapes, pattern = NULL) {
     return(shapes)
   }
   texts <- shapes |> xml_text()
-  ii <- stringr::str_detect(texts, stringr::fixed(pattern))
+  ii <- stringr::str_detect(texts, pattern)
   shapes[ii]
 }
 
