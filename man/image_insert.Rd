@@ -9,7 +9,7 @@ image_insert(
   image,
   pattern,
   slide_idx = NULL,
-  fixed = FALSE,
+  fixed = TRUE,
   scale = 1,
   h_just = 0.5,
   v_just = 0.5,
@@ -29,7 +29,7 @@ Wrap in \link[stringr:modifiers]{stringr::fixed} for fixed string object or set 
 \item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default), all slides
 are processed.}
 
-\item{fixed}{\verb{[logical]}\cr Interpret \code{pattern} as fixed string? (default \code{FALSE}).}
+\item{fixed}{\verb{[logical]}\cr Interpret \code{pattern} as fixed string? (default \code{TRUE}).}
 
 \item{scale}{\verb{[numeric >= 0]}\cr Value to scale image by.}
 

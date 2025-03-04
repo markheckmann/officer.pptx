@@ -1,5 +1,3 @@
-
-
 #' Get path to test files
 #'
 #' Run without args (`test_file()`, `test_image()`) to get a list of available test files.

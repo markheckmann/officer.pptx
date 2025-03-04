@@ -2,6 +2,7 @@
 
 S3method(print,frame)
 S3method(print,rpptx)
+export(add_slide)
 export(example_image)
 export(example_pptx)
 export(file_open)
