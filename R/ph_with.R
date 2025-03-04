@@ -6,9 +6,9 @@
 #' cover all options from the `ph_location_*` family and also less customization. It is meant as
 #' a covenience wrapper for the most common use cases.
 #' @param x A `rpptx` object.
-#' @param ... Key-value pairs of the form `"short form location" = object`. If the short form is an
-#' integer or a string with blanks, you must wrap it in quotes or backticks. The implemented short
-#' forms are listed in section `"Short forms"`.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Key-value pairs of the form `"short form location" = object`.
+#' If the short form is an integer or a string with blanks, you must wrap it in quotes or backticks.
+#' The implemented short forms are listed in section `"Short forms"`.
 #'
 #' @section Short forms:
 #' The following short forms are implemented and can be used as the parameter in the function call.
@@ -34,12 +34,13 @@
 #'     `body[2]` = "Body 2", left = "Left side", `6` = "Footer"
 #'   )
 phs_with <- function(x, ...) {
-  dots <- list(...)
+  # dots <- list(...)
+  dots <- rlang::list2(...)
   if (length(dots) == 0) {
     return(x)
   }
   loc_strings <- as.list(names(dots))
-  ii <- grepl("^\\d+$", loc_strings)
+  ii <- grepl("^\\d+$", loc_strings) # numeric index short-form
   loc_strings[ii] <- as.integer(loc_strings[ii])
   locations <- lapply(loc_strings, officer::resolve_location)
   for (i in seq_along(dots)) {

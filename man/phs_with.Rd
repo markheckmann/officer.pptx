@@ -9,9 +9,9 @@ phs_with(x, ...)
 \arguments{
 \item{x}{A \code{rpptx} object.}
 
-\item{...}{Key-value pairs of the form \code{"short form location" = object}. If the short form is an
-integer or a string with blanks, you must wrap it in quotes or backticks. The implemented short
-forms are listed in section \code{"Short forms"}.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Key-value pairs of the form \code{"short form location" = object}.
+If the short form is an integer or a string with blanks, you must wrap it in quotes or backticks.
+The implemented short forms are listed in section \code{"Short forms"}.}
 }
 \description{
 A sibling of \link[officer:ph_with]{officer::ph_with} which allows adding several objects to a
