@@ -1,4 +1,4 @@
-#' @title Add objects to current slide using key value syntax
+#' @title Add objects to placeholders using key value syntax
 #' @description A sibling of [officer::ph_with] which allows adding several objects to a
 #' slide at once. Locations are specfied using the short form syntax. The location and object
 #' are passed as key value pairs in the function call (`phs_with("short-form" = object)`).

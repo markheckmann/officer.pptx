@@ -184,19 +184,31 @@ pptx_shapes_on_slide <- function(x, slide_idx, pattern = NULL) {
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
 #' @export
 #' @rdname shapes-hide-unhide
-pptx_shapes_hide_temp <- function(x, pattern, slide_idx = NULL) {
-  .pptx_hide_unhide_shapes("hide", x, pattern, slide_idx)
+shape_hide <- function(x, pattern, slide_idx = NULL) {
+  .shapes_hide_unhide("hide", x, pattern, slide_idx)
+}
+
+
+pptx_shapes_hide_temp <- \(x, pattern, slide_idx = NULL) {
+  .Deprecated("shape_hide", old = "pptx_shapes_hide_temp")
+  shape_hide(x, pattern, slide_idx)
 }
 
 
 #' @export
 #' @rdname shapes-hide-unhide
-pptx_shapes_unhide_temp <- function(x, pattern, slide_idx = NULL) {
-  .pptx_hide_unhide_shapes("unhide", x, pattern, slide_idx)
+shape_unhide <- function(x, pattern, slide_idx = NULL) {
+  .shapes_hide_unhide("unhide", x, pattern, slide_idx)
 }
 
 
-.pptx_hide_unhide_shapes <- function(action = "hide", x, pattern, slide_idx = NULL, ...) {
+pptx_shapes_unhide_temp <- \(x, pattern, slide_idx = NULL) {
+  .Deprecated("shape_unhide", old = "pptx_shapes_unhide_temp")
+  shape_unhide(x, pattern, slide_idx)
+}
+
+
+.shapes_hide_unhide <- function(action = "hide", x, pattern, slide_idx = NULL, ...) {
   assert_class(x, "rpptx")
   action <- match.arg(action, c("hide", "unhide"))
   .fun <- switch(action,
@@ -220,8 +232,6 @@ pptx_images_on_slide <- function(x, slide_idx, pattern = NULL) {
   pptx_slide_get(x, slide_idx) |> xml_get_images()
   # shapes |> xml_shapes_filter(pattern)
 }
-
-
 
 
 # extract size and position from shape and convert to frame

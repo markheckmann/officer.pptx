@@ -50,7 +50,6 @@ image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
 }
 
 
-
 #' Insert image at shape position
 #'
 #' @param x `[rpptx]`\cr An [officer] object. See [read_pptx()].
@@ -60,7 +59,7 @@ image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
 #'   are processed.
 #' @inheritParams frame_fit_to_target
 #' @export
-#' @example inst/ext/examples/example-text-replace.R
+#' @keywords internal
 pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
                                             scale = 1, h_just = 0.5,
                                             v_just = 0.5, x_offset = 0, y_offset = 0,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ph_with.R
 \name{phs_with}
 \alias{phs_with}
-\title{Add objects to current slide using key value syntax}
+\title{Add objects to placeholders using key value syntax}
 \usage{
 phs_with(x, ...)
 }

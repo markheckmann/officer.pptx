@@ -1,7 +1,7 @@
 # DRAW ----------------------
 
 
-#' Draw a slide
+#' Plot a slide
 #'
 #' Generate an wireframe-like image of the structrual elements on a slide
 #' (shapes, placeholders, images etc.).  Helps to get a quick impression what
@@ -12,7 +12,8 @@
 #'   all slides are processed.
 #' @param highlight TBD
 #' @export
-pptx_slide_draw <- function(x, slide_idx, highlight = NULL) {
+#' @keywords internal
+slide_show <- function(x, slide_idx, highlight = NULL) {
   w <- slide_size(x)
   layout_summary(x) # layou summary shown  in print
   pptx_shapes_info(x)
