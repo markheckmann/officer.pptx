@@ -1,6 +1,6 @@
-assert_class <- function(x, class) {
-  if (!inherits(x, class)) {
-    cli::cli_abort("{.arg x} must be an object of type {.val {class}}")
+assert_class <- function(x, cls) {
+  if (!inherits(x, cls)) {
+    cli::cli_abort("{.arg x} must be an object of type {.val {cls}}")
   }
 }
 

@@ -49,7 +49,7 @@ file_out <- tempfile(fileext = ".pptx")
 # file_open(file_in)
 
 x <- pptx_read(file_in)
-x <- pptx_text_replace(x, "@" = ">>>", "{1}" = ":)")
+x <- text_replace(x, "@" = ">>>", "{1}" = ":)")
 print(x, target = file_out)
 
 # file_open(file_out)

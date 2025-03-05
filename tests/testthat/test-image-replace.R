@@ -4,7 +4,7 @@
 #     file_out <- tempfile(fileext = ".pptx")
 #
 #     x <- read_pptx(file_in)
-#     x <- pptx_text_replace(x, "@" = "<<>>", "{1}" = "ö")
+#     x <- text_replace(x, "@" = "<<>>", "{1}" = "ö")
 #     print(x, target = file_out)
 #   }
 #

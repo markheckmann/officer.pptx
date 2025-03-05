@@ -17,7 +17,7 @@
 #' using the `pattern` and `replacement` args.
 #' @export
 #' @example inst/ext/examples/example-text-replace.R
-pptx_text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...) {
+text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...) {
   assert_class(x, "rpptx")
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
   nodesets <- lapply(slide_idx, \(idx) pptx_shapes_on_slide(x, idx))
