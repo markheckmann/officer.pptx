@@ -15,3 +15,4 @@ If \code{FALSE}, scale frame, so it contains the target frame.}
 \description{
 Scale frame to fit target frame
 }
+\keyword{internal}

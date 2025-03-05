@@ -2,7 +2,7 @@
 % Please edit documentation in R/re-exports.R
 \name{pptx_read}
 \alias{pptx_read}
-\title{Read PTX file
+\title{Read PPTX file
 Identical to \link[officer:read_pptx]{officer::read_pptx}. Re-exported for consistent function names.}
 \usage{
 pptx_read(path = NULL)
@@ -11,6 +11,6 @@ pptx_read(path = NULL)
 \item{path}{path to the pptx file to use as base document. \code{potx} file are supported.}
 }
 \description{
-Read PTX file
+Read PPTX file
 Identical to \link[officer:read_pptx]{officer::read_pptx}. Re-exported for consistent function names.
 }

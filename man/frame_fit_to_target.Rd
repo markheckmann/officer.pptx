@@ -37,3 +37,4 @@ Order of operations:
 \item add x/y-offset (extra space) as multiple of image width
 }
 }
+\keyword{internal}

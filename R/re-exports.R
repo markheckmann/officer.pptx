@@ -1,4 +1,4 @@
-#' Read PTX file
+#' Read PPTX file
 #' Identical to [officer::read_pptx]. Re-exported for consistent function names.
 #' @inheritParams officer::read_pptx
 #' @export

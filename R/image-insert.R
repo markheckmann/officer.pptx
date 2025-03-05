@@ -219,6 +219,7 @@ frame_from_image <- function(path) {
 #' @param fit_inside `[logical]`\cr If `TRUE`, scale frame to fit inside target frame.
 #' If `FALSE`, scale frame, so it contains the target frame.
 #' @inheritParams frame_fit_to_target
+#' @keywords internal
 frame_scale_to_target <- function(f_source, f_target, fit_inside = TRUE) {
   assert_frame(f_source)
   assert_frame(f_target)
@@ -249,6 +250,7 @@ frame_scale_to_target <- function(f_source, f_target, fit_inside = TRUE) {
 #' `0=`left/bottom, `1=`right/top. By default, the image is centered.
 #' @param x_offset,y_offset `[numeric]`\cr Offset as multiple of image wdth/height.
 #' @inheritParams frame_scale_to_target
+#' @keywords internal
 frame_fit_to_target <- function(f_source, f_target, scale = 1, h_just = 0.5,
                                 v_just = 0.5, x_offset = 0, y_offset = 0,
                                 fit_inside = TRUE) {
