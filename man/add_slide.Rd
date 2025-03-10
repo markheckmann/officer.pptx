@@ -4,13 +4,7 @@
 \alias{add_slide}
 \title{Add a slide (patched version with dots)}
 \usage{
-add_slide(
-  x,
-  layout = "Title and Content",
-  master = NULL,
-  ...,
-  .phs_with = NULL
-)
+add_slide(x, layout = "Title and Content", master = NULL, ..., .dots = NULL)
 }
 \arguments{
 \item{x}{an rpptx object}
@@ -19,10 +13,10 @@ add_slide(
 
 \item{master}{master layout name where \code{layout} is located}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Key-value pairs of the form \code{"short form location" = object}}
-
-\item{.phs_with}{List of type \code{"short form location" = object}. Alternative to using the dots \code{...}.
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Key-value pairs of the form \code{"short form location" = object}
 passed to \link{phs_with}.}
+
+\item{.dots}{List of type \code{"short form location" = object}. Alternative to using the dots \code{...}.}
 }
 \description{
 Add a slide into a pptx presentation.

@@ -300,3 +300,28 @@ read_image <- function(path) {
 is_node <- function(node) {
   inherits(node, "xml_node")
 }
+
+
+assert_node <- \(x, argname = NULL) {
+  argname <- argname %||% rlang::as_name(rlang::ensym(x))
+  if (!is_node(x)){
+    cli::cli_abort("{.arg {argname}} must be an {.cls xml_node} node, not {.cls {class(x)[1]}}")
+  }
+}
+
+
+assert_shapetree <- \(x, argname = NULL) {
+  argname <- argname %||% rlang::as_name(rlang::ensym(x))
+  if (!is_shapetree(x)){
+    cli::cli_abort("{.arg {argname}} must be an {.cls xml_node} node, not {.cls {class(x)[1]}}")
+  }
+}
+
+
+is_shapetree <- \(x) {
+  if (!is_node(x)){
+    return(FALSE)
+  }
+  xml2::xml_name(x) == "spTree"
+}
+

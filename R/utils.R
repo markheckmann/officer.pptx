@@ -15,6 +15,42 @@ assert_class <- function(x, cls) {
 `%nin%` <- Negate(`%in%`)
 
 
+
+# In OOXML, shape rotations are expressed in units of 1/60000th of a degree.
+# For example:
+#   1° becomes 1 × 60000 = 60000
+# 90° becomes 90 × 60000 = 5400000
+# This conversion factor allows precise rotation settings in OOXML documents.
+degree_to_rotation <- \(x) {
+  as.integer(x * 60000)
+}
+
+
+rotation_to_degree <- \(x) {
+  x / 60000
+}
+
+
+# as_integer(1)
+# as_integer(1.1)
+# as_integer(1.0)
+# as_integer(c(1.0, 2.0))
+as_integer <- \(x, name = "x") {
+  if (!is_integerish(x)) {
+    cli::cli_alert_warning("{.arg name} is no {.cls integer}. Casting to integer")
+  }
+  as.integer(x)
+}
+
+# is_integerish(1)
+# is_integerish(1.0)
+# is_integerish(c(1.0, 2.0))
+is_integerish <- function(x) {
+  ii <- all(is.numeric(x) | is.integer(x))
+  jj <- all(x == as.integer(x))
+  ii && jj
+}
+
 #' Open local file
 #' @param path Path to file.
 #' @export
@@ -84,3 +120,4 @@ example_image <- function(name = NULL) {
   path <- system.file("ext/images", package = "officer.pptx")
   folder_files(path, name = name, pattern = ".png|.jpg", fun = "example_image")
 }
+
