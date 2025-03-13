@@ -1,8 +1,7 @@
 x <- read_pptx()
 layout_summary(x)
-x <- add_slide(x,
-  layout = "Two Content", master = "Office Theme"
-)
+
+x <- add_slide(x, layout = "Two Content", master = "Office Theme")
 
 # use ... to fill slide placeholder in same step
 x <- read_pptx() |>

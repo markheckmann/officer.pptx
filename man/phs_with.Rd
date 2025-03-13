@@ -4,14 +4,19 @@
 \alias{phs_with}
 \title{Add objects to placeholders using key value syntax}
 \usage{
-phs_with(x, ...)
+phs_with(x, ..., .dots = NULL, .slide_idx = NULL)
 }
 \arguments{
 \item{x}{A \code{rpptx} object.}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Key-value pairs of the form \code{"short form location" = object}.
+\item{...}{Key-value pairs of the form \code{"short form location" = object}.
 If the short form is an integer or a string with blanks, you must wrap it in quotes or backticks.
 The implemented short forms are listed in section \code{"Short forms"}.}
+
+\item{.dots}{List with key-value pairs \code{"short form location" = object}. Alternative to \code{...}.}
+
+\item{.slide_idx}{Numeric indexes of slides to process. \code{NULL} (default) processes the current
+slide only. Use keyowrd \code{all} for all slides.}
 }
 \description{
 A sibling of \link[officer:ph_with]{officer::ph_with} which allows adding several objects to a

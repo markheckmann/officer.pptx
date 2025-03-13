@@ -141,7 +141,7 @@ xml_add_image_at_shape <- function(x, img_path, shape, ...) {
 }
 
 
-is_shape <- function(node) {
+xml_is_shape <- function(node) {
   xml_name(node) %in% c("sp", "cxnSp")
 }
 
@@ -304,24 +304,23 @@ is_node <- function(node) {
 
 assert_node <- \(x, argname = NULL) {
   argname <- argname %||% rlang::as_name(rlang::ensym(x))
-  if (!is_node(x)){
+  if (!is_node(x)) {
     cli::cli_abort("{.arg {argname}} must be an {.cls xml_node} node, not {.cls {class(x)[1]}}")
   }
 }
 
 
-assert_shapetree <- \(x, argname = NULL) {
+assert_xml_shapetree <- \(x, argname = NULL) {
   argname <- argname %||% rlang::as_name(rlang::ensym(x))
-  if (!is_shapetree(x)){
+  if (!xml_is_shapetree(x)) {
     cli::cli_abort("{.arg {argname}} must be an {.cls xml_node} node, not {.cls {class(x)[1]}}")
   }
 }
 
 
-is_shapetree <- \(x) {
-  if (!is_node(x)){
+xml_is_shapetree <- \(x) {
+  if (!is_node(x)) {
     return(FALSE)
   }
   xml2::xml_name(x) == "spTree"
 }
-

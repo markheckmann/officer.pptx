@@ -120,4 +120,3 @@ example_image <- function(name = NULL) {
   path <- system.file("ext/images", package = "officer.pptx")
   folder_files(path, name = name, pattern = ".png|.jpg", fun = "example_image")
 }
-

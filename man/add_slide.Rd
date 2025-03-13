@@ -13,10 +13,9 @@ add_slide(x, layout = "Title and Content", master = NULL, ..., .dots = NULL)
 
 \item{master}{master layout name where \code{layout} is located}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Key-value pairs of the form \code{"short form location" = object}
-passed to \link{phs_with}.}
+\item{...}{Key-value pairs of the form \code{"short form location" = object} passed to \link{phs_with}.}
 
-\item{.dots}{List of type \code{"short form location" = object}. Alternative to using the dots \code{...}.}
+\item{.dots}{List with key-value pairs \code{"short form location" = object}. Alternative to \code{...}.}
 }
 \description{
 Add a slide into a pptx presentation.
@@ -24,9 +23,8 @@ Add a slide into a pptx presentation.
 \examples{
 x <- read_pptx()
 layout_summary(x)
-x <- add_slide(x,
-  layout = "Two Content", master = "Office Theme"
-)
+
+x <- add_slide(x, layout = "Two Content", master = "Office Theme")
 
 # use ... to fill slide placeholder in same step
 x <- read_pptx() |>
