@@ -5,6 +5,13 @@ assert_class <- function(x, cls) {
 }
 
 
+assert_pkg_namespace <- function(pkg) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    cli::cli_abort("Function requires {.pkg {pkg}} to be installed.")
+  }
+}
+
+
 # coalesce for R
 `%||%` <- function(l, r) {
   if (is.null(l)) r else l
@@ -119,4 +126,11 @@ example_pptx <- function(name = NULL) {
 example_image <- function(name = NULL) {
   path <- system.file("ext/images", package = "officer.pptx")
   folder_files(path, name = name, pattern = ".png|.jpg", fun = "example_image")
+}
+
+
+# check if LibreOffice is installed
+soffice_available <- function() {
+  soffice_path <- Sys.which("soffice")
+  nzchar(soffice_path) > 0
 }

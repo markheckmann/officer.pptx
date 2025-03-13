@@ -1,7 +1,7 @@
 Package: officer.pptx
 Type: Package
 Title: Add-on functions to work with PPTX and officer package
-Version: 0.1.1.9005
+Version: 0.1.1.9006
 Author: Mark Heckmann <heckmann.mark@gmail.com>
 Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
 Description: Add-on functions to work with PPTX and officer package.
@@ -28,7 +28,9 @@ RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    processx,
+    pdftools
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

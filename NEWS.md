@@ -1,5 +1,6 @@
 # officer.pptx 0.1.1
 
+* `slide_preview` to plot a slide.
 * `add_slide`: gains dynamic dots (passed on to `phs_with`) and arg `.phs_with` to create slide and fill placeholders in one step.
 * `phs_with` gains dynamic dots.
 * `xml_add_image_at_shape`: fix vectorization. Only works for non placeholder shapes.
