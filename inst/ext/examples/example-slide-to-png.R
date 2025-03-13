@@ -7,4 +7,5 @@ x <- add_slide(x,
   dt = as.character(Sys.Date()),
   sldNum = 1
 )
-slide_preview(x)
+file <- slide_to_png(x)
+# browseURL(file) # may not work on all systems

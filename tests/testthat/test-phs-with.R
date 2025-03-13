@@ -1,5 +1,5 @@
 get_shapetree <- function(x, slide_idx = NULL) {
-  officer:::stop_if_not_rpptx(x)
+  stop_if_not_rpptx(x)
   slide_idx <- slide_idx %||% x$cursor
   xml_node <- x$slide$get_slide(slide_idx)$get()
   xml2::xml_child(xml_node, "*/p:spTree")
@@ -7,7 +7,7 @@ get_shapetree <- function(x, slide_idx = NULL) {
 
 
 get_shapetrees <- function(x, slide_idx = NULL) {
-  officer:::stop_if_not_rpptx(x)
+  stop_if_not_rpptx(x)
   slide_idx <- slide_idx %||% seq_len(length(x))
   lapply(slide_idx, function(idx) get_shapetree(x, idx))
 }
@@ -15,7 +15,7 @@ get_shapetrees <- function(x, slide_idx = NULL) {
 
 # all slide's shapetrees as a string and shape's UUIDs removed
 get_shapetrees_string <- function(x, slide_idx = NULL) {
-  officer:::stop_if_not_rpptx(x)
+  stop_if_not_rpptx(x)
   sp_tree <- get_shapetrees(x, slide_idx = slide_idx)
   sp_tree_chr <- vapply(sp_tree, paste, character(1))
   s <- paste(sp_tree_chr, collapse = " ")

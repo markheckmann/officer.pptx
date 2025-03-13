@@ -9,26 +9,25 @@ slide_preview(x, slide_idx = NULL)
 \arguments{
 \item{x}{A \code{rpptx} object.}
 
-\item{slide_idx}{Slide to plolt. Defaults to current slide.}
+\item{slide_idx}{Slide to plot. Defaults to current slide.}
+}
+\value{
+Invisble \code{rpptx} object.
 }
 \description{
 Requires LibreOffice to be installed. Note that plotting is quite slow.
-In the background, the \code{rpptx} is first saved, converted to PDF, then to PNG and finally plotted.
+In the background, the \code{rpptx} is first saved, converted to PDF, then to
+PNG and finally plotted.
 }
 \examples{
-x <- read_pptx() |>
-  add_slide(
-    layout = "Title Slide",
-    ctrTitle = "Hello World",
-    subTitle = "Here we go",
-    ftr = "Ths is a footer!",
-    dt = as.character(Sys.Date()),
-    sldNum = 99
-  )
-slide_preview(x)
-
-# show existing presentation slide
-file <- example_pptx("text_replace")
-x <- read_pptx(file)
+x <- read_pptx()
+x <- add_slide(x,
+  layout = "Title Slide",
+  ctrTitle = "Hello World",
+  subTitle = "Here we go",
+  ftr = "Ths is a footer!",
+  dt = as.character(Sys.Date()),
+  sldNum = 1
+)
 slide_preview(x)
 }

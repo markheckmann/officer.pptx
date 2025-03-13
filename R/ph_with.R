@@ -27,7 +27,7 @@
 #' @export
 #' @example inst/ext/examples/example-phs-with.R
 phs_with <- function(x, ..., .dots = NULL, .slide_idx = NULL) {
-  dots <- modifyList(list(...), .dots %||% list())
+  dots <- utils::modifyList(list(...), .dots %||% list())
   if (length(dots) == 0) {
     return(x)
   }
@@ -35,7 +35,7 @@ phs_with <- function(x, ..., .dots = NULL, .slide_idx = NULL) {
   if (is.character(.slide_idx) && .slide_idx == "all") {
     .slide_idx <- seq_len(length(x))
   }
-  officer:::stop_if_not_in_slide_range(x, .slide_idx)
+  stop_if_not_in_slide_range(x, .slide_idx)
 
   loc_strings <- as.list(names(dots))
   ii <- grepl("^\\d+$", loc_strings) # find integer short-forms

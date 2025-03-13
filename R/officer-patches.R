@@ -8,7 +8,7 @@
 #' @param .dots List with key-value pairs `"short form location" = object`. Alternative to `...`.
 #' @example inst/ext/examples/example-add-slide.R
 add_slide <- function(x, layout = "Title and Content", master = NULL, ..., .dots = NULL) {
-  la <- officer:::get_layout(x, layout, master)
+  la <- get_layout(x, layout, master)
   x <- officer::add_slide(x, layout = la$layout_name, master = la$master_name)
   dots <- utils::modifyList(list(...), .dots %||% list())
   if (length(dots) > 0) {
