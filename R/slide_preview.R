@@ -46,13 +46,16 @@
 # }
 
 
-#' Covert a pptx file into pdf
+
+#' Convert a PPTX file into a PDF
 #' @noRd
+#'
 pptx_to_pdf <- function(path_pptx, path_pdf = NULL) {
   if (!soffice_available()) {
     cli::cli_abort(c(
       "LibreOffice not found.",
-      "i" = "PPTX to PDF conversion requires LibreOffice to be installed and on the PATH"
+      "x" = "{.fn pptx_to_pdf} requires LibreOffice to be installed and on the PATH",
+      "i" = "Try command {.code soffice --version}. It must return something."
     ))
   }
   assert_pkg_namespace("processx")
@@ -110,7 +113,11 @@ pptx_to_pdf <- function(path_pptx, path_pdf = NULL) {
 #' @example inst/ext/examples/example-slide-to-png.R
 slide_to_png <- function(x, path = NULL, slide_idx = NULL) {
   if (!soffice_available()) {
-    cli::cli_abort("Preview requires LibreOffice to be installed and on the PATH")
+    cli::cli_abort(c(
+      "LibreOffice not found.",
+      "x" = "{.fn slide_to_png} requires LibreOffice to be installed and on the PATH",
+      "i" = "Try command {.code soffice --version}. It must return something."
+    ))
   }
   assert_pkg_namespace("processx")
   assert_pkg_namespace("pdftools")

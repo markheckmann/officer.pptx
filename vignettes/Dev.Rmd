@@ -14,17 +14,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(officer)
+```{r setup, message=FALSE}
 library(officer.pptx)
-
 x <- read_pptx()
 ```
 
 
 ## Placeholders
 
-Different from `officer::ph_with`, `phs_with` fills any number of placholders by passing the placeholders short-from syntax and an object as a key-value pair.
+Different from `officer::ph_with`, `phs_with` fills any number of placeholders by passing the placeholders short-from syntax and an object as a key-value pair.
 
 ```{r}
 x <- x |>
@@ -74,6 +72,17 @@ x <- image_insert(x, example_image("dog_2"), pattern = "{4}", h_just = .5)
 # print(x, file_out)
 # browseURL(file_out)
 ```
+
+
+## Preview
+
+Create a preview of a slide.
+
+```{r slide-preview}
+slide_preview(x, 1)
+slide_preview(x, 2)
+```
+
 
 
 ## Shapes
@@ -144,10 +153,10 @@ has these subelements:
 
 ## Todos
 
-[] Build a class for Shape, Picture, GraphicFrame, ShapeTree
-[] Refactor and add inheritance if useful
-[] Return correct coordinates for shapes inside group shapes
-[] Basis translation PoC of commonmark syntax to `<p:txBody>`
+- [] Build a class for Shape, Picture, GraphicFrame, ShapeTree
+- [] Refactor and add inheritance if useful
+- [] Return correct coordinates for shapes inside group shapes
+- [] Basis translation PoC of commonmark syntax to `<p:txBody>`
 
 
 ## Ideas
