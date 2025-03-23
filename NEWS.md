@@ -1,5 +1,6 @@
 # officer.pptx 0.1.1
 
+* remove `phs_with()`. Ported to `{officer}` as of version `0.6.8`.
 * `slide_preview` to plot a slide, `slide_to_png` to save a slide to file. Experimental version `slide_preview_2` 
   leveraging the `doconv` package, but with some problems (#5).
 * `add_slide`: gains dynamic dots (passed on to `phs_with`) and arg `.phs_with` to create slide and fill placeholders in one step.
