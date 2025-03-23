@@ -5,11 +5,28 @@ assert_class <- function(x, cls) {
 }
 
 
-assert_pkg_namespace <- function(pkg) {
+assert_pkg_namespace <- function(pkg, fun = NULL) {
+  fun_str <- ifelse(is.null(fun), "Function", "{.fn {fun}}")
+  mgs <- paste(fun_str, "requires package {.pkg {pkg}} to be installed.")
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    cli::cli_abort("Function requires {.pkg {pkg}} to be installed.")
+    cli::cli_abort(mgs, call = NULL)
   }
 }
+
+
+# check several namespaces at once
+requireNamespaces <- function(pkgs, fail_if_missing = FALSE, quietly = TRUE) {
+  if (!is.character(pkgs)) {
+    cli::cli_abort("{.arg pkgs} must be a {.cls character}, not {.cls {class(pkgs)[1]}}")
+  }
+  pkg_status <- vapply(pkgs, requireNamespace, quietly = quietly, USE.NAMES = TRUE, FUN.VALUE = logical(1))
+  if (fail_if_missing && any(!pkg_status)) {
+    missed <- names(pkg_status[!pkg_status])
+    cli::cli_abort("{cli::qty(missed)} Package{?s} {.pkg {missed}} not installed.", call = NULL)
+  }
+  pkg_status
+}
+
 
 
 # coalesce for R
@@ -133,4 +150,30 @@ example_image <- function(name = NULL) {
 soffice_available <- function() {
   soffice_path <- Sys.which("soffice")
   nzchar(soffice_path) > 0
+}
+
+
+get_shapetree <- function(x, slide_idx = NULL) {
+  stop_if_not_rpptx(x)
+  slide_idx <- slide_idx %||% x$cursor
+  xml_node <- x$slide$get_slide(slide_idx)$get()
+  xml2::xml_child(xml_node, "*/p:spTree")
+}
+
+
+get_shapetrees <- function(x, slide_idx = NULL) {
+  stop_if_not_rpptx(x)
+  slide_idx <- slide_idx %||% seq_len(length(x))
+  lapply(slide_idx, function(idx) get_shapetree(x, idx))
+}
+
+
+# all slide's shapetrees as a string and shape's UUIDs removed
+# used to check if created slides are identical.
+get_shapetrees_string <- function(x, slide_idx = NULL) {
+  stop_if_not_rpptx(x)
+  sp_tree <- get_shapetrees(x, slide_idx = slide_idx)
+  sp_tree_chr <- vapply(sp_tree, paste, character(1))
+  s <- paste(sp_tree_chr, collapse = " ")
+  gsub("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", "xxx", s) # delete shape's UUIDs
 }

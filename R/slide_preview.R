@@ -46,8 +46,33 @@
 # }
 
 
+# returns
+get_stored_pfd <- function(pptx_path) {
+  if (!file.exists(pptx_path)) {
+    cli::cli_abort("File does not exist: {.path {pptx_path}}")
+  }
+  pdf_folder <- get_pdf_storage_folder()
+  pptx_hash <- tools::md5sum(pptx_path)
+  list.files(pdf_folder, pattern = pptx_hash, full.names = TRUE)
+}
+
+
+store_pdf <- function(pptx_path, pdf_path) {
+  if (!file.exists(pptx_path)) {
+    cli::cli_abort("File does not exist: {.path {pptx_path}}")
+  }
+  if (!file.exists(pdf_path)) {
+    cli::cli_abort("File does not exist: {.path {pdf_path}}")
+  }
+  pptx_hash <- tools::md5sum(pptx_path)
+  pdf_in_store <- file.path(get_pdf_storage_folder(), paste0(pptx_hash, ".pdf"))
+  file.copy(pdf_path, pdf_in_store, overwrite = TRUE)
+}
+
 
 #' Convert a PPTX file into a PDF
+#'
+#' office only version
 #' @noRd
 #'
 pptx_to_pdf <- function(path_pptx, path_pdf = NULL) {
@@ -77,7 +102,17 @@ pptx_to_pdf <- function(path_pptx, path_pdf = NULL) {
     }
   }
 
+  store_path <- get_stored_pfd(path_pptx) # retrieve from cashed pdfs
+  if (length(store_path) > 0) {
+    return(store_path)
+  }
+
   cli::cli_alert_info("This may take a few seconds...")
+  if (isFALSE(options()$officer.pptx.warm_convert)) {
+    cli::cli_alert_warning("Note: The first usage inside an R session may require extra time.")
+    options(officer.pptx.warm_convert = TRUE)
+  }
+
   file_in <- normalizePath(path_pptx)
   temp_dir <- tempdir()
   res <- processx::run("soffice", c(
@@ -94,9 +129,50 @@ pptx_to_pdf <- function(path_pptx, path_pdf = NULL) {
 
   pdf_file <- gsub(".pptx$", ".pdf", basename(path_pptx))
   pdf_in_tempdir <- file.path(temp_dir, pdf_file)
+  store_pdf(path_pptx, pdf_in_tempdir)
+
   file_out <- path_pdf %||% file.path(dirname(path_pptx), pdf_file)
   file.copy(from = pdf_in_tempdir, to = file_out)
   file_out
+}
+
+
+#' Convert a PPTX file into a PDF
+#'
+#' This version uses the [doconv::to_pdf] but is not fully integerated yet.
+#' It has the advantage that it can also convert via PowerPoint. LibreOffce
+#' only serves as a fallback if the former is not installed.
+#'
+#' @noRd
+pptx_to_pdf_v2 <- function(path_pptx, path_pdf = NULL) {
+  assert_pkg_namespace("doconv")
+
+  ext <- tools::file_ext(path_pptx)
+  if (tolower(ext) != "pptx") {
+    cli::cli_abort(c(
+      "{.arg path_pptx} must be a {.val .pptx} file",
+      "x" = "Found extension {.val .{ext}} instead"
+    ))
+  }
+  if (is.character(path_pdf)) {
+    ext <- tools::file_ext(path_pdf)
+    if (tolower(ext) != "pdf") {
+      cli::cli_abort(c(
+        "{.arg path_pdf} must be a {.val .pdf} file",
+        "x" = "Found extension {.val .{ext}} instead"
+      ))
+    }
+  }
+
+  cli::cli_alert_info("This may take a few seconds...")
+  if (isFALSE(options()$officer.pptx.warm_convert)) {
+    cli::cli_alert_warning("Note: The first usage inside an R session may require extra time.")
+    options(officer.pptx.warm_convert = TRUE)
+  }
+
+  .pdf_filename <- gsub(".pptx$", ".pdf", basename(path_pptx))
+  pdf_path <- path_pdf %||% file.path(dirname(path_pptx), .pdf_filename)
+  doconv::to_pdf(path_pptx, output = pdf_path)
 }
 
 
@@ -140,7 +216,6 @@ slide_to_png <- function(x, path = NULL, slide_idx = NULL) {
   temp_dir <- tempdir()
   pptx_file <- file.path(temp_dir, "temp.pptx")
   print(x, pptx_file)
-
   pdf_file <- pptx_to_pdf(pptx_file)
 
   bitmap <- pdftools::pdf_render_page(pdf_file, page = slide_idx, dpi = 150)
@@ -164,7 +239,7 @@ slide_to_png <- function(x, path = NULL, slide_idx = NULL) {
 #' @example inst/ext/examples/example-slide-preview.R
 slide_preview <- function(x, slide_idx = NULL) {
   stop_if_not_rpptx(x)
-  tmp_png <- slide_to_png(x, slide_idx = slide_idx)
+  tmp_png <- slide_to_png(x, slide_idx = slide_idx) # writing and reading may be avoided here, but it is super fast, so I keep it this ways
   img <- png::readPNG(tmp_png)
   op <- graphics::par(mar = rep(0, 4))
   on.exit(graphics::par(op))
@@ -177,4 +252,59 @@ slide_preview <- function(x, slide_idx = NULL) {
   graphics::rasterImage(img, xleft = 0, ybottom = 0, xright = nx, ytop = ny)
   graphics::rect(0, 0, ncol(img), nrow(img), border = "grey", lwd = 1)
   invisible(x)
+}
+
+
+#' Plot a slide preview (experimental, see issue #5)
+#'
+#' Requires `{doconv}` to be installed. Note that plotting is quite slow.
+#' In the background, the `rpptx` is first saved, converted to PDF, then to
+#' images, and finally plotted.
+#'
+#' @param x A `rpptx` object.
+#' @param slide_idx Slide indexes to plot. Defaults to current slide. `"all"` plots
+#' all slides.
+#' @return Invisble `rpptx` object.
+#' @export
+#' @keywords internal
+slide_preview_2 <- function(x, slide_idx = NULL, width = 750) {
+  assert_pkg_namespace("doconv", "slide_preview_2")
+  stop_if_not_rpptx(x)
+  if (is.character(slide_idx) && slide_idx == "all") {
+    slide_idx <- seq(length(x))
+  }
+  slide_idx <- slide_idx %||% x$cursor
+  stop_if_not_in_slide_range(x, slide_idx)
+  file <- tempfile(fileext = ".pptx")
+  print(x, file)
+  row <- prep_row_arg(x, slide_idx = slide_idx)
+  img <- doconv::to_miniature(file, row = row, width = width)
+  info <- magick::image_info(img)
+  op <- graphics::par(mar = rep(0, 4))
+  on.exit(graphics::par(op))
+  nx <- info$width
+  ny <- info$height
+  plot(1, 1,
+       xlim = c(1, nx), ylim = c(1, ny),
+       type = "n", xlab = "", ylab = "", axes = TRUE, asp = 1
+  )
+  graphics::rasterImage(img, xleft = 0, ybottom = 0, xright = nx, ytop = ny)
+  invisible(x)
+}
+
+
+# helper to prep row arg for doconv::to_miniature
+prep_row_arg <- function(x, slide_idx) {
+  stop_if_not_rpptx(x)
+  stop_if_not_in_slide_range(x, slide_idx)
+  ii <- seq(length(x))
+  i_used <- ii %in% slide_idx
+  ii[!i_used] <- 0
+  n_slides <- sum(i_used)
+  n_cols <- ceiling(sqrt(n_slides))
+  n_rows <- ceiling(n_slides / n_cols)
+  row_arg <- rep(seq(n_rows), each = n_cols)
+  row_arg <- utils::head(row_arg, n_slides)
+  ii[i_used] <- row_arg
+  ii
 }
