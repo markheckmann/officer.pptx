@@ -7,13 +7,14 @@
 \method{print}{rpptx}(x, target = NULL, details = FALSE, ...)
 }
 \arguments{
-\item{x}{an rpptx object}
+\item{x}{an \code{rpptx} object.}
 
-\item{target}{path to the pptx file to write}
+\item{target}{path to the .pptx file to write. If \code{target} is \code{NULL} (default), the \code{rpptx} object is printed to
+the console.}
 
 \item{details}{\verb{[logical]}\cr Show layouts?}
 
-\item{...}{unused}
+\item{...}{unused.}
 }
 \description{
 New print method for officer \code{rpptx} object
