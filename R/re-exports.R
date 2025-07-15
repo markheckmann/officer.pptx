@@ -4,20 +4,23 @@
 #' @export
 pptx_read <- officer::read_pptx
 
-
 rpptx_print <- getFromNamespace("print.rpptx", "officer")
 
 stop_if_not_rpptx <- getFromNamespace("stop_if_not_rpptx", "officer")
 
+stop_if_not_class <- getFromNamespace("stop_if_not_class", "officer")
+
 stop_if_not_in_slide_range <- getFromNamespace("stop_if_not_in_slide_range", "officer")
 
 get_layout <- getFromNamespace("get_layout", "officer")
+convin <- getFromNamespace("convin", "officer")
+is.color <- getFromNamespace("is.color", "officer")
 
 
 #' New print method for officer `rpptx` object
 #' @inheritParams officer::print.rpptx
 #' @param details `[logical]`\cr Show layouts?
-#' @export
+#' @noRd
 print.rpptx <- function(x, target = NULL, details = FALSE, ...) {
   if (!is.null(target)) {
     return(rpptx_print(x, target = target, ...)) # save object

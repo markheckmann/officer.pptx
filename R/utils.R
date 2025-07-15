@@ -177,3 +177,12 @@ get_shapetrees_string <- function(x, slide_idx = NULL) {
   s <- paste(sp_tree_chr, collapse = " ")
   gsub("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", "xxx", s) # delete shape's UUIDs
 }
+
+
+# From other packages -------------------------------------------------
+
+# tools::file_ext
+file_ext <- function(x) {
+  pos <- regexpr("\\.([[:alnum:]]+)$", x)
+  ifelse(pos > -1L, substring(x, pos + 1L), "")
+}

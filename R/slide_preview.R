@@ -285,8 +285,8 @@ slide_preview_2 <- function(x, slide_idx = NULL, width = 750) {
   nx <- info$width
   ny <- info$height
   plot(1, 1,
-       xlim = c(1, nx), ylim = c(1, ny),
-       type = "n", xlab = "", ylab = "", axes = TRUE, asp = 1
+    xlim = c(1, nx), ylim = c(1, ny),
+    type = "n", xlab = "", ylab = "", axes = TRUE, asp = 1
   )
   graphics::rasterImage(img, xleft = 0, ybottom = 0, xright = nx, ytop = ny)
   invisible(x)
@@ -307,4 +307,43 @@ prep_row_arg <- function(x, slide_idx) {
   row_arg <- utils::head(row_arg, n_slides)
   ii[i_used] <- row_arg
   ii
+}
+
+
+
+#' Plot a slide preview (experimental, see issue #5)
+#'
+#' Requires `{doconv}` to be installed. Note that plotting is quite slow.
+#' In the background, the `rpptx` is first saved, converted to PDF, then to
+#' images, and finally plotted.
+#'
+#' @param x A `rpptx` object.
+#' @param slide_idx Slide indexes to plot. Defaults to current slide. `"all"` plots
+#' all slides.
+#' @return Invisble `rpptx` object.
+#' @export
+#' @keywords internal
+slide_preview_3 <- function(x, slide_idx = NULL, width = 750) {
+  assert_pkg_namespace("doconv", "slide_preview_3")
+  stop_if_not_rpptx(x)
+  if (is.character(slide_idx) && slide_idx == "all") {
+    slide_idx <- seq(length(x))
+  }
+  slide_idx <- slide_idx %||% x$cursor
+  stop_if_not_in_slide_range(x, slide_idx)
+  file <- tempfile(fileext = ".pptx")
+  print(x, file)
+  row <- prep_row_arg(x, slide_idx = slide_idx)
+  img <- doconv::to_miniature(file, row = row, width = width)
+  info <- magick::image_info(img)
+  op <- graphics::par(mar = rep(0, 4))
+  on.exit(graphics::par(op))
+  nx <- info$width
+  ny <- info$height
+  plot(1, 1,
+    xlim = c(1, nx), ylim = c(1, ny),
+    type = "n", xlab = "", ylab = "", axes = TRUE, asp = 1
+  )
+  graphics::rasterImage(img, xleft = 0, ybottom = 0, xright = nx, ytop = ny)
+  invisible(x)
 }

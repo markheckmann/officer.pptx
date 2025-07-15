@@ -4,8 +4,8 @@
 \name{officer.pptx-package}
 \alias{officer.pptx}
 \alias{officer.pptx-package}
-\title{officer.pptx: Add-on functions to work with PPTX and officer package}
+\title{officer.pptx: Add-on functions to work with PPTX and the officer package}
 \description{
-Add-on functions to work with PPTX and officer package.
+Add-on functions to work with PPTX and the officer package.
 }
 \keyword{internal}

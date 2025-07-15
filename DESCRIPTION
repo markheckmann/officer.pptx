@@ -1,7 +1,7 @@
 Package: officer.pptx
 Type: Package
-Title: Add-on functions to work with PPTX and officer package
-Version: 0.1.1.9009
+Title: Add-on functions to work with PPTX and the officer package
+Version: 0.1.1.9010
 Author: Mark Heckmann <heckmann.mark@gmail.com>
 Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
 Description: Add-on functions to work with PPTX and the officer package.
@@ -9,7 +9,7 @@ License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: 
-    officer
+    officer (>= 0.6.8)
 Imports:
     rlang,
     cli,

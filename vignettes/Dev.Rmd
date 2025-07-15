@@ -153,10 +153,10 @@ has these subelements:
 
 ## Todos
 
-- [] Build a class for Shape, Picture, GraphicFrame, ShapeTree
-- [] Refactor and add inheritance if useful
-- [] Return correct coordinates for shapes inside group shapes
-- [] Basis translation PoC of commonmark syntax to `<p:txBody>`
+- [ ] Build a class for Shape, Picture, GraphicFrame, ShapeTree
+- [ ] Refactor and add inheritance if useful
+- [ ] Return correct coordinates for shapes inside group shapes
+- [ ] Basis translation PoC of commonmark syntax to `<p:txBody>`
 
 
 ## Ideas
