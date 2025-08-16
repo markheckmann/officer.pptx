@@ -94,6 +94,13 @@ x <- x |>
 # More img() options
 x <- x |> add_slide(body = img(file_png, fit = "inside", scale = .65, rotation = 45))
 
+# possible to add mutiple times at same ph position
+x <- x |> add_slide() |> phs_with(
+  body = img(file_png, fit = "inside", scale = .5, x_offset = -1),
+  body = img(file_png, fit = "inside", scale = .5),
+  body = img(file_png, fit = "inside", scale = .5, x_offset = 1)
+)
+
 print(x, file_pptx)
 file_open(file_pptx) # may not work on all systems
 }

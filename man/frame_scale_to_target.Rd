@@ -13,6 +13,9 @@ frame_scale_to_target(f_source, f_target, fit = "inside")
 \code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
 If \code{FALSE}, scale frame, so it contains the target frame.}
 }
+\value{
+A \code{frame} object.
+}
 \description{
 \emph{Note}: Scaling only, no translation (x,y) happening here.
 }

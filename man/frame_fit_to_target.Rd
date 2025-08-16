@@ -34,10 +34,13 @@ units (see \code{offset_mode}).}
 \item{offset_mode}{\verb{[character]}\cr Offset values are interprete as one of: multiple of scaled source frame's
 width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
 }
+\value{
+A \code{frame} object.
+}
 \description{
 Order of operations (same as order of args):
 \enumerate{
-\item Adjust source size to target frame
+\item Adjust source size to target frame and move to match target's center
 \item Scale by factor
 \item Justify horizontal and vertical position within target
 \item Add x/y-offset (extra space) as multiple of scaled image width/height

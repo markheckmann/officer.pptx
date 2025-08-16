@@ -17,8 +17,8 @@ vignette: >
 #| echo: false
 #| message: false
 
-# library(officer.pptx)
-devtools::load_all()
+library(officer.pptx)
+# devtools::load_all()
 stopifnot(require("doconv")) # for miniature image
 ```
 

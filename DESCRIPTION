@@ -23,7 +23,8 @@ Imports:
     stats,
     png,
     jpeg,
-    purrr
+    purrr,
+    scales
 RoxygenNote: 7.3.2
 Suggests: 
     knitr,
@@ -33,8 +34,7 @@ Suggests:
     pdftools,
     doconv,
     magick,
-    quarto, 
-    doconv
+    quarto
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: quarto

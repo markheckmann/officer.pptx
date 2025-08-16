@@ -151,15 +151,18 @@ xml_is_shape <- function(node) {
 # FRAME --------------------------------------------------
 
 
-#' Frame class to fold position info
+#' Frame class to hold position info
 #' @param left,top,width,height `[numeric >= 0]`\cr Self explanatory.
 #' @param unit `[character]`\cr Not yet used.
 #' @keywords internal
+#' @export
 frame <- function(left, top, width, height, unit = NA) {
   x <- list(
     left = as.numeric(left),
     top = as.numeric(top),
-    width = as.numeric(width), height = as.numeric(height), unit = unit
+    width = as.numeric(width),
+    height = as.numeric(height),
+    unit = unit
   )
   class(x) <- c("frame", "list")
   x
@@ -178,7 +181,7 @@ print.frame <- function(x, ...) {
 #' @export
 #' @keywords internal
 #' @param sep Separator between coords.
-#' @param digitsDigiuts to round to.
+#' @param digits Digits to round to.
 as.character.frame <- function(x, ..., sep = " ", digits = 2) {
   l <- x[c("left", "top", "width", "height")]
   l <- lapply(l, round, digits = digits)
@@ -228,7 +231,7 @@ frame_ratio <- function(x) {
 
 frame_from_image <- function(path) {
   img <- get_img_dimensions(path)
-  frame(left = 0, top = img$height, width = img$width, height = img$height)
+  frame(left = 0, top = 0, width = img$width, height = img$height)
 }
 
 
@@ -277,6 +280,7 @@ frame_scale_to_target <- function(f_source, f_target, fit = "inside") {
 #'
 #' @inheritParams frame_fit_to_target
 #' @keywords internal
+#' @export
 #' @returns A `frame` object.
 frame_center_to_target <- function(f_source, f_target) {
   assert_frame(f_source)
@@ -305,6 +309,7 @@ frame_center_to_target <- function(f_source, f_target) {
 #' width / height (`source`, default), multiple of target frame's width / height (`target`), or raw `units`.
 #' @inheritParams frame_scale_to_target
 #' @keywords internal
+#' @export
 #' @returns A `frame` object.
 frame_fit_to_target <- function(f_source, f_target,
                                 fit = "inside", scale = 1,
@@ -376,14 +381,14 @@ frame_add_bottom_right <- function(frame) {
 frame_plot_rect <- function(frame, label = "<frame>", color = "black", coords = TRUE, ...) {
   assert_frame(frame)
   dots <- list(...)
-  rect(
+  graphics::rect(
     xleft = frame$left, xright = frame$right, ytop = frame$top, ybottom = frame$bottom,
     border = color, col = scales::alpha(color, alpha = .1), ...
   )
-  text(x = frame$right, y = frame$top, label = label, col = color, adj = c(1, 1), font = 2)
+  graphics::text(x = frame$right, y = frame$top, label = label, col = color, adj = c(1, 1), font = 2)
   if (coords) {
-    text(
-      x = frame$right, y = frame$top - 1.5 * strheight("A"),
+    graphics::text(
+      x = frame$right, y = frame$top - 1.5 * graphics::strheight("A"),
       label = as.character(frame, sep = "\n"), col = color, adj = c(1, 1), cex = .75
     )
   }
@@ -417,8 +422,8 @@ frames_draw <- function(frame_1, frame_2, labels = c("source", "target"),
   plot(0, xlim = xlim, ylim = ylim, type = "n", yaxt = "n", xaxt = "n", xlab = "", ylab = "", frame = FALSE, asp = 1)
   # browser()
   # plot(0, xlim = xlim, ylim = ylim, xlab = "", ylab = "", frame = T, asp = 1)
-  axis(1, col = "grey50", col.axis = "grey50")
-  axis(2, col = "grey50", col.axis = "grey50", las = 1, at = pretty(ylim))
+  graphics::axis(1, col = "grey50", col.axis = "grey50")
+  graphics::axis(2, col = "grey50", col.axis = "grey50", las = 1, at = pretty(ylim))
 
   frame_plot_rect(frame_1, color = colors[1], lty = 1, label = labels[1], coords = coords)
   frame_plot_rect(frame_2, color = colors[2], lty = 2, label = labels[2], coords = coords)

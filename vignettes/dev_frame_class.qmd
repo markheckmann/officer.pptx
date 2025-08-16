@@ -17,8 +17,9 @@ vignette: >
 #| echo: false
 #| message: false
 
-# library(officer.pptx)
-devtools::load_all()
+library(officer.pptx)
+frames_draw <- getFromNamespace("frames_draw", "officer.pptx")
+# devtools::load_all()
 ```
 
 The `frame` class is a helper to fit an image to a placeholder. 

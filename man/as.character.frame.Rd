@@ -9,7 +9,7 @@
 \arguments{
 \item{sep}{Separator between coords.}
 
-\item{digitsDigiuts}{to round to.}
+\item{digits}{Digits to round to.}
 }
 \description{
 Frame to character

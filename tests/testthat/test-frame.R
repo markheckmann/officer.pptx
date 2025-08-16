@@ -43,7 +43,7 @@ test_that("Test frame class and methods", {
   f1_new <- frame_fit_to_target(f1, f2)
   # frames_draw(f1, f2)
   # frames_draw(f1_new, f2)
-  expect_identical(f1_new, frame(0, -.25, 1, .5))
+  expect_identical(f1_new, frame(0, .25, 1, .5))
 
   f1 <- frame(0, 0, 2, 1)
   f2 <- frame(2, 2, 1, 1)

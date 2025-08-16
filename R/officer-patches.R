@@ -235,7 +235,7 @@ get_dimensions_emf <- function(file) {
 
 
 get_dimensions_wmf <- function(file) {
-    con <- file(path, "rb"); on.exit(close(con), add = TRUE)
+    con <- file(file, "rb"); on.exit(close(con), add = TRUE)
     # Check for Aldus Placeable Metafile (APM) header (0x9AC6CDD7)
     key <- readBin(con, integer(), 1L, size=4L, endian="little", signed = FALSE)
     if (isTRUE(key == as.numeric(0x9AC6CDD7))) {

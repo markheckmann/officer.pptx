@@ -2,7 +2,7 @@
 % Please edit documentation in R/image-insert.R
 \name{frame}
 \alias{frame}
-\title{Frame class to fold position info}
+\title{Frame class to hold position info}
 \usage{
 frame(left, top, width, height, unit = NA)
 }
@@ -12,6 +12,6 @@ frame(left, top, width, height, unit = NA)
 \item{unit}{\verb{[character]}\cr Not yet used.}
 }
 \description{
-Frame class to fold position info
+Frame class to hold position info
 }
 \keyword{internal}
