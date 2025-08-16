@@ -2,17 +2,18 @@
 % Please edit documentation in R/image-insert.R
 \name{frame_scale_to_target}
 \alias{frame_scale_to_target}
-\title{Scale frame to fit target frame}
+\title{Scale frame to size of target frame}
 \usage{
-frame_scale_to_target(f_source, f_target, fit_inside = TRUE)
+frame_scale_to_target(f_source, f_target, fit = "inside")
 }
 \arguments{
 \item{f_source, f_target}{\verb{[frame]}\cr Source and target frame.}
 
-\item{fit_inside}{\verb{[logical]}\cr If \code{TRUE}, scale frame to fit inside target frame.
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
+\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
 If \code{FALSE}, scale frame, so it contains the target frame.}
 }
 \description{
-Scale frame to fit target frame
+\emph{Note}: Scaling only, no translation (x,y) happening here.
 }
 \keyword{internal}

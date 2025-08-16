@@ -37,4 +37,3 @@ slides_text_count_temp <- function(x, pattern, slide_idx = NULL, fixed = TRUE) {
 #   add_slide("Title and Content", title = "xxx", body = "x")
 # slide_pattern_count_temp(x, 1, "xx")
 # slides_text_count_temp(x, "xx")
-

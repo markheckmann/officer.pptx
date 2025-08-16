@@ -1,0 +1,78 @@
+---
+title: "Dev - img class"
+echo: false
+format: 
+  html:
+    toc: true
+    html-math-method: mathjax
+    fig-width: 8
+    fig-height: 7
+vignette: >
+  %\VignetteIndexEntry{Dev - img class}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+# library(officer.pptx)
+devtools::load_all()
+stopifnot(require("doconv")) # for miniature image
+```
+
+The `img` class is a helper to insert an external image. It replaces `officer::external_img`.
+
+
+## Supported formats
+
+## Examples
+
+```{r}
+#| echo: true
+#| 
+file_out <- tempfile(fileext = ".pptx")
+file_png <- tempfile(fileext = ".png")
+
+png(file_png, bg = "transparent")
+  plot(0:10/10, col = "red", pch = 16, cex = 3)
+  # title(tools::file_ext(file_png))
+dev.off()
+
+x <- read_pptx() |> layout_default("Title and Content")
+
+# default settings
+x <- x |> add_slide(title = "img() - defaults", body = img(file_png))
+
+# img() settings
+x <- x |> add_slide(title = "img() - with settings",
+                    body = img(file_png, h_just = 0, line = "blue", background = "lightblue", scale = .9))
+
+# settings via ph_with()
+x <- x |>
+  add_slide(title = "img() - with settings") |>
+  ph_with(img(file_png), "body", line = sp_line(lwd = 4, color = "red", lty = "dash"),
+          background = "#ffdddd", rotation = 90)
+
+# via phs_with() ---
+# TODO: This is wrong
+x <- x |>
+  add_slide() |>
+  phs_with(body = img(file_png, scale = 1), 
+           body = img(file_png, scale = .5)) #, v_just = .5, h_just = .5)) |>
+  #phs_with(fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0))
+
+print(x, file_out)
+# file_open(file_out)
+```
+
+```{r}
+#| echo: false
+
+#file_miniature <- tempfile(fileext = ".png")
+doconv::to_miniature(file_out, row = c(1,1,2,2)) #, fileout = file_miniature)
+#knitr::include_graphics(file_miniature)
+```
+
+

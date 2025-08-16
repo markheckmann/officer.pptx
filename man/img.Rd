@@ -6,12 +6,13 @@
 \usage{
 img(
   src,
+  fit = "inside",
   scale = 1,
   h_just = 0.5,
   v_just = 0.5,
   x_offset = 0,
   y_offset = 0,
-  fit_inside = TRUE,
+  offset_mode = "source",
   rotation = 0,
   background = "transparent",
   line = sp_line(),
@@ -24,15 +25,20 @@ img(
 \arguments{
 \item{src}{Image file path.}
 
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
+\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
+If \code{FALSE}, scale frame, so it contains the target frame.}
+
 \item{scale}{\verb{[numeric >= 0]}\cr Value to scale image by.}
 
 \item{h_just, v_just}{\verb{[numeric]}\cr Horizontal / vertical placement of image inside frame.
 \verb{0=}left/bottom, \verb{1=}right/top. By default, the image is centered.}
 
-\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of image wdth/height.}
+\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of scaled source frame width / height (default) or raw
+units (see \code{offset_mode}).}
 
-\item{fit_inside}{\verb{[logical]}\cr If \code{TRUE}, scale frame to fit inside target frame.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{offset_mode}{\verb{[character]}\cr Offset values are interprete as one of: multiple of scaled source frame's
+width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
 
 \item{rotation}{Rotation in degrees (anti-clockwise).}
 
@@ -86,8 +92,8 @@ x <- x |>
   phs_with(fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0))
 
 # More img() options
-x <- x |> add_slide(body = img(file_png, fit_inside = FALSE, scale = .65, rotation = 45))
+x <- x |> add_slide(body = img(file_png, fit = "inside", scale = .65, rotation = 45))
 
 print(x, file_pptx)
-# file_open(file_pptx) # may not work on all systems
+file_open(file_pptx) # may not work on all systems
 }

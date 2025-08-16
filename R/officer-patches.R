@@ -21,9 +21,10 @@
 #' @export
 #' @example inst/ext/examples/example-img.R
 img <- function(
-    src, scale = 1, h_just = 0.5, v_just = 0.5, x_offset = 0, y_offset = 0,
-    fit_inside = TRUE, rotation = 0, background = "transparent",
-    line = sp_line(), alt = "", width = NULL, height = NULL, unit = "in") {
+    src, fit = "inside", scale = 1, h_just = 0.5, v_just = 0.5,
+    x_offset = 0, y_offset = 0, offset_mode = "source",
+    rotation = 0, background = "transparent", line = sp_line(),
+    alt = "", width = NULL, height = NULL, unit = "in") {
   check_src <- all(grepl("^rId", src)) || all(file.exists(src))
   if (!check_src) {
     stop(
@@ -38,7 +39,7 @@ img <- function(
     line <- sp_line(color = line)
   }
 
-  l <- mget(names(formals()), envir = environment(), inherits = FALSE)
+  l <- mget(names(formals()), envir = environment(), inherits = FALSE) # put all input args into list
   class(l) <- c("img")
   l
 }
@@ -94,14 +95,15 @@ ph_with.img <- function(x, value, location, ...) {
   f_source <- frame_from_image(img_path)
   f_fitted <- frame_fit_to_target(f_source, f_target,
     scale = img_$scale,
+    fit = img_$fit,
     h_just = img_$h_just, v_just = img_$v_just,
     x_offset = img_$x_offset, y_offset = img_$y_offset,
-    fit_inside = img_$fit_inside
+    offset_mode = img_$offset_mode
   )
 
   loc_fitted <- do.call(ph_location, f_fitted) # create new, updated ph location
 
-  # convert to external_img class to use to_pml.external_img for now
+  # convert to <external_img> class to use `to_pml.external_img()` for now
   src <- img_$src
   class(src) <- "external_img"
   attr(src, "alt") <- img_$alt

@@ -1,24 +1,23 @@
 ---
-title: "Dev"
-output: rmarkdown::html_vignette
+title: "Dev Notes"
+echo: false
+format: 
+  html:
+    toc: true
+    html-math-method: mathjax
+    fig-width: 8
+    fig-height: 7
 vignette: >
-  %\VignetteIndexEntry{Dev}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Dev Notes}
+  %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
 ```{r setup, message=FALSE}
 library(officer.pptx)
+# devtools::load_all()
 x <- read_pptx()
 ```
-
 
 ## Placeholders
 
@@ -204,5 +203,4 @@ x <- x |> add_slide("l1", "title" = "Title Text", "body" = "PH 1")
 
 print(x, file_out)
 ```
-
 

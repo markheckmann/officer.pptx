@@ -25,8 +25,9 @@
 #' @export
 #' @example inst/ext/examples/example-text-replace.R
 image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
-                         scale = 1, h_just = 0.5, v_just = 0.5, x_offset = 0, y_offset = 0,
-                         fit_inside = TRUE) {
+                         fit = "inside", scale = 1,
+                         h_just = 0.5, v_just = 0.5,
+                         x_offset = 0, y_offset = 0, offset_mode = "source") {
   assert_class(x, "rpptx")
   slide_idx <- slide_idx %||% seq_along(x)
   if (fixed) {
@@ -39,8 +40,8 @@ image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
       cat("\rs_idx:", s_idx, "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
       .pptx_image_insert_at_shape_on_slide(x,
         image = image[i], pattern = pattern[i], slide_idx = s_idx,
-        scale = scale, h_just = h_just, v_just = v_just,
-        x_offset = x_offset, y_offset = y_offset, fit_inside = fit_inside
+        fit = fit, scale = scale, h_just = h_just, v_just = v_just,
+        x_offset = x_offset, y_offset = y_offset, offset_mode = offset_mode
       )
       # shapes <- x |> pptx_shapes_on_slide(slide_idx = idx, pattern = pattern[i])
       # x <- xml_add_image_at_shape(x, image[i], shapes, )
@@ -173,6 +174,18 @@ print.frame <- function(x, ...) {
 }
 
 
+#' Frame to character
+#' @export
+#' @keywords internal
+#' @param sep Separator between coords.
+#' @param digitsDigiuts to round to.
+as.character.frame <- function(x, ..., sep = " ", digits = 2) {
+  l <- x[c("left", "top", "width", "height")]
+  l <- lapply(l, round, digits = digits)
+  msg <- glue::glue("left:{l$left}{sep}top:{l$top}{sep}width:{l$width}{sep}height:{l$height}")
+}
+
+
 # f <- frame(1,2,3,4)
 # is_frame(f)
 is_frame <- function(x) {
@@ -213,50 +226,107 @@ frame_from_image <- function(path) {
 }
 
 
-#' Scale frame to fit target frame
+#' Scale frame to size of target frame
 #'
-#' @param fit_inside `[logical]`\cr If `TRUE`, scale frame to fit inside target frame.
+#' *Note*: Scaling only, no translation (x,y) happening here.
+#'
+#' @param fit `[character]`\cr One of `inside`: fit inside target frame, `outside`: fit around target frame,
+#' `width`: match target frame width, `height`: match target frame height, `none`: no scaling.
 #' If `FALSE`, scale frame, so it contains the target frame.
 #' @inheritParams frame_fit_to_target
 #' @keywords internal
-frame_scale_to_target <- function(f_source, f_target, fit_inside = TRUE) {
+#' @export
+frame_scale_to_target <- function(f_source, f_target, fit = "inside") {
   assert_frame(f_source)
   assert_frame(f_target)
 
+  fit <- match.arg(tolower(fit), c("inside", "outside", "width", "height", "fill", "none"))
+
   scale_by_h <- f_target$height / f_source$height
   scale_by_w <- f_target$width / f_source$width
+  f_ratio <- frame_ratio(f_source) / frame_ratio(f_target)
 
-  if (frame_ratio(f_source) >= frame_ratio(f_target)) {
-    scale_by <- ifelse(fit_inside, scale_by_h, scale_by_w)
-  } else {
-    scale_by <- ifelse(fit_inside, scale_by_w, scale_by_h)
+  if (fit == "none") {
+    return(f_source)
   }
+  if (fit == "fill") {
+    f_source$width <- f_target$width
+    f_source$height <- f_target$height
+    return(f_source)
+  }
+  scale_by <- switch(fit,
+    width = scale_by_w,
+    height = scale_by_h,
+    inside = ifelse(f_ratio >= 1, scale_by_h, scale_by_w),
+    outside = ifelse(f_ratio >= 1, scale_by_w, scale_by_h),
+  )
   frame_scale(f_source, scale_by)
 }
 
 
-#' Adjust frame so it fits into target frame
+#' Adjust frame so it fits to target frame
 #'
-#' Order of operations:
-#' 1. adjust size to target frame
-#' 2. scale size by factor
-#' 3. justify horizontal and vertical position within target
-#' 4. add x/y-offset (extra space) as multiple of image width
+#' Order of operations (same as order of args):
+#' 1. Adjust source size to target frame
+#' 2. Scale by factor
+#' 3. Justify horizontal and vertical position within target
+#' 4. Add x/y-offset (extra space) as multiple of scaled image width/height
 #'
 #' @param f_source,f_target `[frame]`\cr Source and target frame.
 #' @param scale `[numeric >= 0]`\cr Value to scale image by.
 #' @param h_just,v_just `[numeric]`\cr Horizontal / vertical placement of image inside frame.
 #' `0=`left/bottom, `1=`right/top. By default, the image is centered.
-#' @param x_offset,y_offset `[numeric]`\cr Offset as multiple of image wdth/height.
+#' @param x_offset,y_offset `[numeric]`\cr Offset as multiple of scaled source frame width / height (default) or raw
+#' units (see `offset_mode`).
+#' @param offset_mode `[character]`\cr Offset values are interprete as one of: multiple of scaled source frame's
+#' width / height (`source`, default), multiple of target frame's width / height (`target`), or raw `units`.
 #' @inheritParams frame_scale_to_target
 #' @keywords internal
-frame_fit_to_target <- function(f_source, f_target, scale = 1, h_just = 0.5,
-                                v_just = 0.5, x_offset = 0, y_offset = 0,
-                                fit_inside = TRUE) {
+frame_fit_to_target <- function(f_source, f_target,
+                                fit = "inside", scale = 1,
+                                h_just = 0.5, v_just = 0.5,
+                                x_offset = 0, y_offset = 0, offset_mode = "source") {
   assert_frame(f_source)
   assert_frame(f_target)
+  fit <- match.arg(tolower(fit), c("inside", "outside", "width", "height", "none"))
+  offset_mode <- match.arg(tolower(offset_mode), c("source", "target", "units"))
 
-  f_source <- frame_scale_to_target(f_source, f_target, fit_inside = fit_inside)
+  # scaling only. no change in top/left yet
+  f_source <- frame_scale_to_target(f_source, f_target, fit = fit)
+  f_source <- frame_scale(f_source, scale)
+
+  # place source over center of target to start from (i.e. h_just = .5, v_just = .5)
+  f_source$left <- f_target$left + (f_target$width) / 2 - f_source$width / 2
+  f_source$top <- f_target$top - f_target$height / 2 + f_source$height / 2
+
+  # h_just, v_just: Must work also if source frame is bigger than target
+  w_delta <- (f_target$width - f_source$width)
+  h_delta <- (f_target$height - f_source$height)
+  f_source$left <- f_source$left + (h_just - .5) * w_delta
+  f_source$top <- f_source$top + (v_just - .5) * h_delta
+
+  # x_offset, y_offset (multiple of scaled source w/h, target w/h, or raw units)
+  if (offset_mode == "source") {
+    f_source$left <- f_source$left + (x_offset * f_source$width)
+    f_source$top <- f_source$top + (y_offset * f_source$height)
+  } else if (offset_mode == "target") {
+    f_source$left <- f_source$left + (x_offset * f_target$width)
+    f_source$top <- f_source$top + (y_offset * f_target$height)
+  } else if (offset_mode == "units") {
+    f_source$left <- f_source$left + x_offset
+    f_source$top <- f_source$top + y_offset
+  }
+  f_source
+}
+
+
+frame_fit_to_target_v1 <- function(f_source, f_target, fit = "inside", scale = 1, h_just = 0.5, v_just = 0.5,
+                                x_offset = 0, y_offset = 0) {
+  assert_frame(f_source)
+  assert_frame(f_target)
+  fit <- match.arg(tolower(fit), c("inside", "outside", "width", "height", "none"))
+
+  f_source <- frame_scale_to_target(f_source, f_target, fit = fit) # scaled, not changing top/left
   f_source$left <- f_target$left
   f_source$top <- f_target$top
   f_source <- frame_scale(f_source, scale)
@@ -266,6 +336,66 @@ frame_fit_to_target <- function(f_source, f_target, scale = 1, h_just = 0.5,
   f_source$left <- f_source$left + x_offset * f_source$width
   f_source$top <- f_source$top + y_offset * f_source$height
   f_source
+}
+
+
+# add bottom and right coords to frame
+frame_add_bottom_right <- function(frame) {
+  assert_frame(frame)
+  frame$bottom <- frame$top - frame$height
+  frame$right <- frame$left + frame$width
+  frame
+}
+
+
+# plot rectangle at frame coords
+frame_plot_rect <- function(frame, label = "<frame>", color = "black", coords = TRUE, ...) {
+  assert_frame(frame)
+  dots <- list(...)
+  rect(
+    xleft = frame$left, xright = frame$right, ytop = frame$top, ybottom = frame$bottom,
+    border = color, col = scales::alpha(color, alpha = .1), ...
+  )
+  text(x = frame$right, y = frame$top, label = label, col = color, adj = c(1, 1), font = 2)
+  if (coords) {
+    text(
+      x = frame$right, y = frame$top - 1.5 * strheight("A"),
+      label = as.character(frame, sep = "\n"), col = color, adj = c(1, 1), cex = .75
+    )
+  }
+}
+
+
+# draw two frames
+# example:
+# f1 <- frame(0, 0, 1, 1)
+# f2 <- frame(0, 0, 2, 4)
+# frames_draw(f1, f2)
+# f1_fitted <- frame_fit_to_target(f1, f2)
+# frames_draw(f1_fitted, f2)
+#
+frames_draw <- function(frame_1, frame_2, labels = c("source", "target"), colors = c("darkgreen", "blue"),
+                        title = "Frames", coords = TRUE, xlim = NULL, ylim = NULL) {
+  frame_1 <- frame_add_bottom_right(frame_1)
+  frame_2 <- frame_add_bottom_right(frame_2)
+
+  top <- max(frame_1$top, frame_2$top)
+  bottom <- min(frame_1$bottom, frame_2$bottom)
+  left <- min(frame_1$left, frame_2$left)
+  right <- max(frame_1$right, frame_2$right)
+
+
+  expand <- 1.05
+  xlim <- xlim %||% c(left, right) * expand
+  ylim <- ylim %||% c(bottom, top) * expand
+  plot(0, xlim = xlim, ylim = ylim, type = "n", yaxt = "n", xaxt = "n", xlab = "", ylab = "", frame = FALSE, asp = 1)
+
+  axis(1, col = "grey50", col.axis = "grey50", )
+  axis(2, col = "grey50", col.axis = "grey50", las = 1)
+
+  frame_plot_rect(frame_1, color = colors[1], lty = 1, label = labels[1], coords = coords)
+  frame_plot_rect(frame_2, color = colors[2], lty = 2, label = labels[2], coords = coords)
+  title(title)
 }
 
 

@@ -32,10 +32,8 @@ are processed.}
 \item{h_just, v_just}{\verb{[numeric]}\cr Horizontal / vertical placement of image inside frame.
 \verb{0=}left/bottom, \verb{1=}right/top. By default, the image is centered.}
 
-\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of image wdth/height.}
-
-\item{fit_inside}{\verb{[logical]}\cr If \code{TRUE}, scale frame to fit inside target frame.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of scaled source frame width / height (default) or raw
+units (see \code{offset_mode}).}
 }
 \description{
 Insert image at shape position

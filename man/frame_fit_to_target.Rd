@@ -2,39 +2,45 @@
 % Please edit documentation in R/image-insert.R
 \name{frame_fit_to_target}
 \alias{frame_fit_to_target}
-\title{Adjust frame so it fits into target frame}
+\title{Adjust frame so it fits to target frame}
 \usage{
 frame_fit_to_target(
   f_source,
   f_target,
+  fit = "inside",
   scale = 1,
   h_just = 0.5,
   v_just = 0.5,
   x_offset = 0,
   y_offset = 0,
-  fit_inside = TRUE
+  offset_mode = "source"
 )
 }
 \arguments{
 \item{f_source, f_target}{\verb{[frame]}\cr Source and target frame.}
+
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
+\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
+If \code{FALSE}, scale frame, so it contains the target frame.}
 
 \item{scale}{\verb{[numeric >= 0]}\cr Value to scale image by.}
 
 \item{h_just, v_just}{\verb{[numeric]}\cr Horizontal / vertical placement of image inside frame.
 \verb{0=}left/bottom, \verb{1=}right/top. By default, the image is centered.}
 
-\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of image wdth/height.}
+\item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of scaled source frame width / height (default) or raw
+units (see \code{offset_mode}).}
 
-\item{fit_inside}{\verb{[logical]}\cr If \code{TRUE}, scale frame to fit inside target frame.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{offset_mode}{\verb{[character]}\cr Offset values are interprete as one of: multiple of scaled source frame's
+width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
 }
 \description{
-Order of operations:
+Order of operations (same as order of args):
 \enumerate{
-\item adjust size to target frame
-\item scale size by factor
-\item justify horizontal and vertical position within target
-\item add x/y-offset (extra space) as multiple of image width
+\item Adjust source size to target frame
+\item Scale by factor
+\item Justify horizontal and vertical position within target
+\item Add x/y-offset (extra space) as multiple of scaled image width/height
 }
 }
 \keyword{internal}

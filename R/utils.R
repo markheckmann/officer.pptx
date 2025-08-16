@@ -215,10 +215,12 @@ mini_glue <- function(x, ..., .envir = parent.frame()) {
 
   sapply(x, function(str) {
     # find all "{…}" in this string
-    locs    <- gregexpr(pat, str, perl = TRUE)
+    locs <- gregexpr(pat, str, perl = TRUE)
     matches <- regmatches(str, locs)[[1]]
 
-    if (length(matches) == 0) return(str)
+    if (length(matches) == 0) {
+      return(str)
+    }
 
     # eval each match inside eval_env
     replacements <- vapply(matches, function(m) {
@@ -232,5 +234,3 @@ mini_glue <- function(x, ..., .envir = parent.frame()) {
     str
   }, USE.NAMES = FALSE)
 }
-
-
