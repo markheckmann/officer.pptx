@@ -25,10 +25,37 @@ The `frame` class is a helper to fit an image to a placeholder.
 
 Two functions do the fitting:
 
+- `frame_center_to_target`: move center of source frame to center fo target frame
 - `frame_scale_to_target`: scale source to target frame. Scaling only, no change to  position (top, left)
 - `frame_fit_to_target`: additional changes (translation, additional scaling etc.)
 
 The following images show the behaviour for different settings visually.
+
+
+## `frame_center_to_target()`
+
+```{r}
+#| fig-height: 6
+
+xlim <- c(-.5, 1.5)
+ylim <- c(-.5, 1.5)
+
+layout(matrix(1:4, ncol = 2, byrow = TRUE))
+
+f1 <- frame(0, 0, 1.5, 1.3)
+f2 <- frame(0, 0, .5, 1)
+
+frames_draw(f1, f2, title = "original", xlim = xlim, ylim = ylim)
+f1_new <- frame_center_to_target(f1, f2)
+frames_draw(f1_new, f2, title = "matched centers", xlim = xlim, ylim = ylim)
+
+f1 <- frame(0, 0, 1.5, 1.3)
+f2 <- frame(0, 0, 1, .5)
+
+frames_draw(f1, f2, title = "original", xlim = xlim, ylim = ylim)
+f1_new <- frame_center_to_target(f1, f2)
+frames_draw(f1_new, f2, title = "matched centers", xlim = xlim, ylim = ylim)
+```
 
 
 ## `frame_scale_to_target()`
@@ -52,7 +79,7 @@ See results for each fit mode.
 layout(matrix(1:6, ncol = 3, byrow = TRUE))
 
 xlim <- c(0, 1.5)
-ylim <- c(-1.5, 0)
+ylim <- c(0, 1.5)
 
 f1 <- frame(0, 0, 1.5, 1.3)
 f2 <- frame(0, 0, .5, 1)
@@ -105,10 +132,11 @@ Order of operations (same as order of args):
 Justification with `fit = "none"` when target bigger or smaller than source frame.
 
 ```{r}
+#| fig-height: 7
 # center over target (h_hjust = .5, v_just = .5)  -----
 layout(matrix(1:4, ncol = 2, byrow = TRUE))
 xlim <- c(0, 1.5)
-ylim <- c(-1.5, 1)
+ylim <- c(-1, 1.5)
 f1 <- frame(0, 0, 1.5, 1.3)
 f2 <- frame(0, 0, .5, 1)
 
@@ -124,10 +152,11 @@ frames_draw(f2_new, f1, title = "fit: none, v_just = .5, h_just = .5", xlim = xl
 Varying with `fit = "none"` varying `h_just` and `v_just` when target is bigger than source frame.
 
 ```{r}
+#| fig-height: 7
 # h_just, v_just: target bigger than source ----
 layout(matrix(1:4, ncol = 2, byrow = TRUE))
 xlim <- c(0, 1.5)
-ylim <- c(-1.5, 1)
+ylim <- c(-1, 1.5)
 f1 <- frame(.2, 0, 1.5, 1.3)
 f2 <- frame(0, 0, .5, 1)
 
@@ -143,10 +172,11 @@ frames_draw(f2_new, f1, title = "fit: none, v_just = 0, h_just = 1", xlim = xlim
 Varying with `fit = "none"` varying `h_just` and `v_just` when source is bigger than target frame.
 
 ```{r}
+#| fig-height: 7
 # h_just, v_just: source bigger than target ----
 layout(matrix(1:4, ncol = 2, byrow = TRUE))
 xlim <- c(0, 1.5)
-ylim <- c(-1.5, 1)
+ylim <- c(-1, 1.5)
 f2 <- frame(.2, 0, 1.5, 1.3)
 f1 <- frame(0, 0, .5, 1)
 
@@ -166,8 +196,8 @@ Varying `h_just`, `x_offset`, and `offset_mode`. All combinations yield same res
 #| 
 # x_offset, y_offset: source bigger than target ----
 layout(matrix(1:8, ncol = 4, byrow = TRUE))
-xlim <- c(0, 2.5)
-ylim <- c(-1.5, .5)
+xlim <- c(-.5, 2.5)
+ylim <- c(-.5, 1.5)
 f2 <- frame(.2, 0, 1.5, 1.3)
 f1 <- frame(0, 0, .5, 1)
 

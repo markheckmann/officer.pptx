@@ -220,9 +220,15 @@ frame_ratio <- function(x) {
 }
 
 
+# frame_from_image <- function(path) {
+#   img <- read_image(path)
+#   frame(left = 0, top = 0, width = ncol(img), height = nrow(img))
+# }
+
+
 frame_from_image <- function(path) {
-  img <- read_image(path)
-  frame(left = 0, top = 0, width = ncol(img), height = nrow(img))
+  img <- get_img_dimensions(path)
+  frame(left = 0, top = img$height, width = img$width, height = img$height)
 }
 
 
@@ -236,6 +242,7 @@ frame_from_image <- function(path) {
 #' @inheritParams frame_fit_to_target
 #' @keywords internal
 #' @export
+#' @returns A `frame` object.
 frame_scale_to_target <- function(f_source, f_target, fit = "inside") {
   assert_frame(f_source)
   assert_frame(f_target)
@@ -264,10 +271,26 @@ frame_scale_to_target <- function(f_source, f_target, fit = "inside") {
 }
 
 
+#' Match center of source to center of target frame
+#'
+#' Does x and y translation to match centers
+#'
+#' @inheritParams frame_fit_to_target
+#' @keywords internal
+#' @returns A `frame` object.
+frame_center_to_target <- function(f_source, f_target) {
+  assert_frame(f_source)
+  assert_frame(f_target)
+  f_source$left <- f_target$left + f_target$width / 2 - f_source$width / 2
+  f_source$top <- f_target$top + f_target$height / 2 - f_source$height / 2
+  f_source
+}
+
+
 #' Adjust frame so it fits to target frame
 #'
 #' Order of operations (same as order of args):
-#' 1. Adjust source size to target frame
+#' 1. Adjust source size to target frame and move to match target's center
 #' 2. Scale by factor
 #' 3. Justify horizontal and vertical position within target
 #' 4. Add x/y-offset (extra space) as multiple of scaled image width/height
@@ -282,39 +305,40 @@ frame_scale_to_target <- function(f_source, f_target, fit = "inside") {
 #' width / height (`source`, default), multiple of target frame's width / height (`target`), or raw `units`.
 #' @inheritParams frame_scale_to_target
 #' @keywords internal
+#' @returns A `frame` object.
 frame_fit_to_target <- function(f_source, f_target,
                                 fit = "inside", scale = 1,
                                 h_just = 0.5, v_just = 0.5,
                                 x_offset = 0, y_offset = 0, offset_mode = "source") {
   assert_frame(f_source)
   assert_frame(f_target)
-  fit <- match.arg(tolower(fit), c("inside", "outside", "width", "height", "none"))
   offset_mode <- match.arg(tolower(offset_mode), c("source", "target", "units"))
 
+  .f_source <- f_source
+  # browser()
   # scaling only. no change in top/left yet
   f_source <- frame_scale_to_target(f_source, f_target, fit = fit)
   f_source <- frame_scale(f_source, scale)
 
   # place source over center of target to start from (i.e. h_just = .5, v_just = .5)
-  f_source$left <- f_target$left + (f_target$width) / 2 - f_source$width / 2
-  f_source$top <- f_target$top - f_target$height / 2 + f_source$height / 2
+  f_source <- frame_center_to_target(f_source, f_target)
 
   # h_just, v_just: Must work also if source frame is bigger than target
   w_delta <- (f_target$width - f_source$width)
   h_delta <- (f_target$height - f_source$height)
   f_source$left <- f_source$left + (h_just - .5) * w_delta
-  f_source$top <- f_source$top + (v_just - .5) * h_delta
+  f_source$top <- f_source$top - (v_just - .5) * h_delta
 
   # x_offset, y_offset (multiple of scaled source w/h, target w/h, or raw units)
   if (offset_mode == "source") {
     f_source$left <- f_source$left + (x_offset * f_source$width)
-    f_source$top <- f_source$top + (y_offset * f_source$height)
+    f_source$top <- f_source$top - (y_offset * f_source$height)
   } else if (offset_mode == "target") {
     f_source$left <- f_source$left + (x_offset * f_target$width)
-    f_source$top <- f_source$top + (y_offset * f_target$height)
+    f_source$top <- f_source$top - (y_offset * f_target$height)
   } else if (offset_mode == "units") {
     f_source$left <- f_source$left + x_offset
-    f_source$top <- f_source$top + y_offset
+    f_source$top <- f_source$top - y_offset
   }
   f_source
 }
@@ -342,7 +366,7 @@ frame_fit_to_target_v1 <- function(f_source, f_target, fit = "inside", scale = 1
 # add bottom and right coords to frame
 frame_add_bottom_right <- function(frame) {
   assert_frame(frame)
-  frame$bottom <- frame$top - frame$height
+  frame$bottom <- frame$top + frame$height
   frame$right <- frame$left + frame$width
   frame
 }
@@ -368,35 +392,62 @@ frame_plot_rect <- function(frame, label = "<frame>", color = "black", coords = 
 
 # draw two frames
 # example:
-# f1 <- frame(0, 0, 1, 1)
-# f2 <- frame(0, 0, 2, 4)
+# layout(matrix(1:2, ncol = 2))
+# f1 <- frame(left = 0, top = 0, width = 1, height = 1)
+# f2 <- frame(left = 0, top = 0, width = 2, height = 3)
 # frames_draw(f1, f2)
 # f1_fitted <- frame_fit_to_target(f1, f2)
 # frames_draw(f1_fitted, f2)
 #
-frames_draw <- function(frame_1, frame_2, labels = c("source", "target"), colors = c("darkgreen", "blue"),
-                        title = "Frames", coords = TRUE, xlim = NULL, ylim = NULL) {
+frames_draw <- function(frame_1, frame_2, labels = c("source", "target"),
+                        colors = c("darkgreen", "blue"),
+                        title = "Frames", coords = FALSE, xlim = NULL, ylim = NULL) {
   frame_1 <- frame_add_bottom_right(frame_1)
   frame_2 <- frame_add_bottom_right(frame_2)
 
-  top <- max(frame_1$top, frame_2$top)
-  bottom <- min(frame_1$bottom, frame_2$bottom)
+
+  top <- min(frame_1$top, frame_2$top)
+  bottom <- max(frame_1$bottom, frame_2$bottom)
   left <- min(frame_1$left, frame_2$left)
   right <- max(frame_1$right, frame_2$right)
 
-
   expand <- 1.05
   xlim <- xlim %||% c(left, right) * expand
-  ylim <- ylim %||% c(bottom, top) * expand
+  ylim <- sort(ylim, decreasing = TRUE)  %||% c(bottom, top) * expand # axis is inverted, higher values towwards bottom
   plot(0, xlim = xlim, ylim = ylim, type = "n", yaxt = "n", xaxt = "n", xlab = "", ylab = "", frame = FALSE, asp = 1)
-
-  axis(1, col = "grey50", col.axis = "grey50", )
-  axis(2, col = "grey50", col.axis = "grey50", las = 1)
+  # browser()
+  # plot(0, xlim = xlim, ylim = ylim, xlab = "", ylab = "", frame = T, asp = 1)
+  axis(1, col = "grey50", col.axis = "grey50")
+  axis(2, col = "grey50", col.axis = "grey50", las = 1, at = pretty(ylim))
 
   frame_plot_rect(frame_1, color = colors[1], lty = 1, label = labels[1], coords = coords)
   frame_plot_rect(frame_2, color = colors[2], lty = 2, label = labels[2], coords = coords)
   title(title)
 }
+
+# frames_draw <- function(frame_1, frame_2, labels = c("source", "target"),
+#                         colors = c("darkgreen", "blue"),
+#                         title = "Frames", coords = FALSE, xlim = NULL, ylim = NULL) {
+#   frame_1 <- frame_add_bottom_right(frame_1)
+#   frame_2 <- frame_add_bottom_right(frame_2)
+#
+#   top <- max(frame_1$top, frame_2$top)
+#   bottom <- min(frame_1$bottom, frame_2$bottom)
+#   left <- min(frame_1$left, frame_2$left)
+#   right <- max(frame_1$right, frame_2$right)
+#
+#   expand <- 1.05
+#   xlim <- xlim %||% c(left, right) * expand
+#   ylim <- ylim %||% c(bottom, top) * expand
+#   plot(0, xlim = xlim, ylim = ylim, type = "n", yaxt = "n", xaxt = "n", xlab = "", ylab = "", frame = FALSE, asp = 1)
+#
+#   axis(1, col = "grey50", col.axis = "grey50", )
+#   axis(2, col = "grey50", col.axis = "grey50", las = 1)
+#
+#   frame_plot_rect(frame_1, color = colors[1], lty = 1, label = labels[1], coords = coords)
+#   frame_plot_rect(frame_2, color = colors[2], lty = 2, label = labels[2], coords = coords)
+#   title(title)
+# }
 
 
 # ____________----
@@ -454,3 +505,4 @@ xml_is_shapetree <- \(x) {
   }
   xml2::xml_name(x) == "spTree"
 }
+
