@@ -17,9 +17,11 @@ img(
   background = "transparent",
   line = sp_line(),
   alt = "",
-  width = NULL,
-  height = NULL,
-  unit = "in"
+  unit = "in",
+  .left = NULL,
+  .top = NULL,
+  .width = NULL,
+  .height = NULL
 )
 }
 \arguments{
@@ -49,9 +51,9 @@ for more control.}
 
 \item{alt}{Alternative text for image.}
 
-\item{width, height}{Size of image file.}
-
 \item{unit}{Unit for width and height, one of \code{"in"}, \code{"cm"}, \code{"mm"}.}
+
+\item{width, height}{Size of image file.}
 }
 \description{
 Replacement for \code{external_image}

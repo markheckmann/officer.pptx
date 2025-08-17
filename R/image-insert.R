@@ -350,7 +350,7 @@ frame_fit_to_target <- function(f_source, f_target,
 
 
 frame_fit_to_target_v1 <- function(f_source, f_target, fit = "inside", scale = 1, h_just = 0.5, v_just = 0.5,
-                                x_offset = 0, y_offset = 0) {
+                                   x_offset = 0, y_offset = 0) {
   assert_frame(f_source)
   assert_frame(f_target)
   fit <- match.arg(tolower(fit), c("inside", "outside", "width", "height", "none"))
@@ -418,7 +418,7 @@ frames_draw <- function(frame_1, frame_2, labels = c("source", "target"),
 
   expand <- 1.05
   xlim <- xlim %||% c(left, right) * expand
-  ylim <- sort(ylim, decreasing = TRUE)  %||% c(bottom, top) * expand # axis is inverted, higher values towwards bottom
+  ylim <- sort(ylim, decreasing = TRUE) %||% c(bottom, top) * expand # axis is inverted, higher values towwards bottom
   plot(0, xlim = xlim, ylim = ylim, type = "n", yaxt = "n", xaxt = "n", xlab = "", ylab = "", frame = FALSE, asp = 1)
   # browser()
   # plot(0, xlim = xlim, ylim = ylim, xlab = "", ylab = "", frame = T, asp = 1)
@@ -510,4 +510,3 @@ xml_is_shapetree <- \(x) {
   }
   xml2::xml_name(x) == "spTree"
 }
-

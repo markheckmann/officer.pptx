@@ -23,17 +23,15 @@
 img <- function(
     src, fit = "inside", scale = 1, h_just = 0.5, v_just = 0.5,
     x_offset = 0, y_offset = 0, offset_mode = "source",
-    rotation = 0, background = "transparent", line = sp_line(),
-    alt = "", width = NULL, height = NULL, unit = "in") {
+    rotation = 0, background = "transparent", line = sp_line(), alt = "", unit = "in",
+    .left = NULL, .top = NULL, .width = NULL, .height = NULL) {
   check_src <- all(grepl("^rId", src)) || all(file.exists(src))
   if (!check_src) {
     stop(
       "src must be a string starting with 'rId' or an existing image filename"
     )
   }
-
-  width <- convin(unit = unit, x = width)
-  height <- convin(unit = unit, x = height)
+  offset_mode <- match.arg(tolower(offset_mode), c("source", "target", "units"))
 
   if (!inherits(line, "sp_line") && is.color(line)) {
     line <- sp_line(color = line)
@@ -42,6 +40,24 @@ img <- function(
   l <- mget(names(formals()), envir = environment(), inherits = FALSE) # put all input args into list
   class(l) <- c("img")
   l
+}
+
+
+# standardize all units to inches
+# x: an img object
+img_units_to_inch <- function(x) {
+  stop_if_not_class(x, "img", arg = "x")
+  unit <- x$unit
+  x$.left <- convin(unit = unit, x = x$.left)
+  x$.top <- convin(unit = unit, x = x$.top)
+  x$.width <- convin(unit = unit, x = x$.width)
+  x$.height <- convin(unit = unit, x = x$.height)
+  if (x$offset_mode == "units") {
+    x$x_offset <- convin(unit = unit, x = x$x_offset)
+    x$y_offset <- convin(unit = unit, x = x$y_offset)
+  }
+  x$unit <- "in"
+  x
 }
 
 
@@ -59,7 +75,7 @@ update_img_from_dots <- function(x, ...) {
   stop_if_not_class(x, "img", arg = "x")
 
   dots <- list(...)
-  ii <- pmatch(names(dots), names(x)) # partial name matching
+  ii <- pmatch(names(dots), names(x)) # allow partial name matching
   ii_na <- is.na(ii)
   if (any(ii_na) > 0) {
     unknown_args <- names(dots)[ii_na]
@@ -72,9 +88,7 @@ update_img_from_dots <- function(x, ...) {
   }
   ii <- pmatch(names(dots), names(x))
   names(dots) <- names(x)[ii]
-
-  # return new <img> object. Needed e.g. for `ln = sp_line(...)`
-  do.call(img, utils::modifyList(x, dots, keep.null = TRUE))
+  utils::modifyList(x, dots, keep.null = TRUE)
 }
 
 
@@ -85,11 +99,19 @@ ph_with.img <- function(x, value, location, ...) {
   stop_if_not_rpptx(x)
   location <- fortify_location(location, doc = x)
   img_ <- update_img_from_dots(value, ...)
+  img_ <- img_units_to_inch(img_)
   f_target <- frame(
     left = location$left, top = location$top,
     width = location$width, height = location$height,
-    unit = "inch"
+    unit = "in"
   )
+
+  # change target frame if .left, .top, .width, .height is supplied
+  # if all 4 are given, allows for a custom frame
+  has_value <- function(x) !(is.null(x) || length(x) == 0)
+  l_changes <- setNames(img_[c(".left", ".top", ".width", ".height")], c("left", "top", "width", "height"))
+  l_changes <- Filter(has_value, l_changes)
+  f_target <- modifyList(f_target, l_changes)
   img_path <- img_$src
   f_source <- frame_from_image(img_path)
   f_fitted <- frame_fit_to_target(f_source, f_target,
@@ -153,8 +175,8 @@ get_dimensions_magick <- function(file) {
   if (!requireNamespace("magick", quietly = TRUE)) {
     stop("Package 'magick' is required for xxx files.")
   }
-  img  <- magick::image_read(file)
-  info <- magick::image_info(img)[1, ]  # first frame for GIFs
+  img <- magick::image_read(file)
+  info <- magick::image_info(img)[1, ] # first frame for GIFs
   list(
     width  = unname(info$width),
     height = unname(info$height),
@@ -168,8 +190,8 @@ get_dimensions_svg <- function(file) {
   if (!requireNamespace("magick", quietly = TRUE)) {
     stop("Package 'magick' is required for svg files.")
   }
-  img  <- magick::image_read_svg(file)
-  info <- magick::image_info(img)[1, ]  # first frame for GIFs
+  img <- magick::image_read_svg(file)
+  info <- magick::image_info(img)[1, ] # first frame for GIFs
   list(
     width  = unname(info$width),
     height = unname(info$height),
@@ -199,10 +221,10 @@ get_dimensions_pdf <- function(file, page_idx = 1) {
   w_pt <- df_size$width[page_idx] # use one page_idx only
   h_pt <- df_size$height[page_idx]
   list(
-    width  = w_pt,
+    width = w_pt,
     height = h_pt,
     # ratio  = w_pt / h_pt,
-    units   = "points",
+    units = "points",
     format = "pdf"
   )
 }
@@ -210,10 +232,11 @@ get_dimensions_pdf <- function(file, page_idx = 1) {
 
 get_dimensions_emf <- function(file) {
   # --- EMF (millimetres) ---
-  con <- file(file, "rb"); on.exit(close(con), add = TRUE)
+  con <- file(file, "rb")
+  on.exit(close(con), add = TRUE)
   # Read ENHMETAHEADER fields (little-endian); base header is 88 bytes.
-  iType     <- readBin(con, integer(), n = 1L, size = 4L, endian = "little")
-  nSize     <- readBin(con, integer(), n = 1L, size = 4L, endian = "little")
+  iType <- readBin(con, integer(), n = 1L, size = 4L, endian = "little")
+  nSize <- readBin(con, integer(), n = 1L, size = 4L, endian = "little")
   # rclBounds (ignored)
   invisible(readBin(con, integer(), n = 4L, size = 4L, endian = "little"))
   # rclFrame (0.01 mm units)
@@ -223,9 +246,9 @@ get_dimensions_emf <- function(file) {
   if (!identical(sig, as.integer(0x464D4520))) {
     warning("EMF signature not found; results may be unreliable.")
   }
-  width_mm  <- (frame[3] - frame[1]) / 100
+  width_mm <- (frame[3] - frame[1]) / 100
   height_mm <- (frame[4] - frame[2]) / 100
- list(
+  list(
     width  = as.numeric(width_mm),
     height = as.numeric(height_mm),
     units  = "mm",
@@ -235,32 +258,51 @@ get_dimensions_emf <- function(file) {
 
 
 get_dimensions_wmf <- function(file) {
-    con <- file(file, "rb"); on.exit(close(con), add = TRUE)
-    # Check for Aldus Placeable Metafile (APM) header (0x9AC6CDD7)
-    key <- readBin(con, integer(), 1L, size=4L, endian="little", signed = FALSE)
-    if (isTRUE(key == as.numeric(0x9AC6CDD7))) {
-      # APM header present: parse and compute physical size
-      invisible(readBin(con, integer(), 1L, size=2L, endian="little", signed=FALSE)) # hmf
-      bbox <- readBin(con, integer(), 4L, size=2L, endian="little", signed=TRUE)     # left, top, right, bottom
-      inch <- readBin(con, integer(), 1L, size=2L, endian="little", signed=FALSE)    # units per inch
-      invisible(readBin(con, integer(), 1L, size=4L, endian="little", signed=FALSE)) # reserved
-      invisible(readBin(con, integer(), 1L, size=2L, endian="little", signed=FALSE)) # checksum
-      if (is.na(inch) || inch <= 0) stop("Invalid WMF placeable header: inch = ", inch)
-      width_in  <- (bbox[3] - bbox[1]) / inch
-      height_in <- (bbox[4] - bbox[2]) / inch
-      return(list(
-        width  = as.numeric(width_in * 25.4),
-        height = as.numeric(height_in * 25.4),
-        units  = "mm",
-        format = "wmf",
-        extra  = list(placeable_header = TRUE, units_per_inch = inch)
-      ))
-    }
-    stop("WMF without a placeable header is not supported on this system (and magick fallback failed).")
+  con <- file(file, "rb")
+  on.exit(close(con), add = TRUE)
+  # Check for Aldus Placeable Metafile (APM) header (0x9AC6CDD7)
+  key <- readBin(con, integer(), 1L, size = 4L, endian = "little", signed = FALSE)
+  if (isTRUE(key == as.numeric(0x9AC6CDD7))) {
+    # APM header present: parse and compute physical size
+    invisible(readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE)) # hmf
+    bbox <- readBin(con, integer(), 4L, size = 2L, endian = "little", signed = TRUE) # left, top, right, bottom
+    inch <- readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE) # units per inch
+    invisible(readBin(con, integer(), 1L, size = 4L, endian = "little", signed = FALSE)) # reserved
+    invisible(readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE)) # checksum
+    if (is.na(inch) || inch <= 0) stop("Invalid WMF placeable header: inch = ", inch)
+    width_in <- (bbox[3] - bbox[1]) / inch
+    height_in <- (bbox[4] - bbox[2]) / inch
+    return(list(
+      width  = as.numeric(width_in * 25.4),
+      height = as.numeric(height_in * 25.4),
+      units  = "mm",
+      format = "wmf",
+      extra  = list(placeable_header = TRUE, units_per_inch = inch)
+    ))
+  }
+  stop("WMF without a placeable header is not supported on this system (and magick fallback failed).")
 }
 
 
 # strip units (px, pt, cm, in) and convert to numeric
 parse_num <- function(x) {
   as.numeric(gsub("[^0-9\\.]", "", x))
+}
+
+
+#' Slide width and height
+#' @param x An `rpptx` object.
+#' @export
+#' @rdname slide-size
+#' @seealso [officer::slide_size()]
+width <- function(x) {
+  stop_if_not_rpptx(x)
+  slide_size(x)$width
+}
+
+
+#' @rdname slide-size
+height <- function(x) {
+  stop_if_not_rpptx(x)
+  slide_size(x)$height
 }
