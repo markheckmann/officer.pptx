@@ -29,8 +29,11 @@ x <- x |>
 # via phs_with() ---
 x <- x |>
   add_slide() |>
-  phs_with(fullsize = img(file_png, scale = .5, v_just = 1, h_just = 0)) |>
-  phs_with(fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0))
+  phs_with(
+    fullsize = img(file_png, scale = .5, v_just = 1, h_just = 0),
+    fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0),
+    right = img(file_png)
+  )
 
 # More img() options
 x <- x |> add_slide(body = img(file_png, fit = "inside", scale = .65, rotation = 45))
@@ -43,4 +46,5 @@ x <- x |> add_slide() |> phs_with(
 )
 
 print(x, file_pptx)
-file_open(file_pptx) # may not work on all systems
+\dontrun{
+file_open(file_pptx)} # may not work on all systems

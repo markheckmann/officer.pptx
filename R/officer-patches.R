@@ -11,13 +11,13 @@
 #' Replacement for `external_image`
 #' @param src Image file path.
 #' @inheritParams frame_fit_to_target
-#' @param unit Unit for width and height, one of `"in"`, `"cm"`, `"mm"`.
 #' @param alt Alternative text for image.
-#' @param width,height Size of image file.
+#' @param unit One of `"in"` (default), `"cm"`, `"mm"`. Applies to offsets if `offset_mode = "units"`, and `.left`,
+#'   `.top`, `.width`, and`.height`.
+#' @param .left,.top,.width,.height Overwrite placeholder coordinates manually. `unit`s apply.
 #' @param rotation Rotation in degrees (anti-clockwise).
 #' @param background Background color (hex or color name).
-#' @param line Border around image. Either a color or an [officer::sp_line] object
-#'   for more control.
+#' @param line Border around image. Either a color or an [officer::sp_line] object for more control.
 #' @export
 #' @example inst/ext/examples/example-img.R
 img <- function(
@@ -111,7 +111,7 @@ ph_with.img <- function(x, value, location, ...) {
   has_value <- function(x) !(is.null(x) || length(x) == 0)
   l_changes <- setNames(img_[c(".left", ".top", ".width", ".height")], c("left", "top", "width", "height"))
   l_changes <- Filter(has_value, l_changes)
-  f_target <- modifyList(f_target, l_changes)
+  f_target <- utils::modifyList(f_target, l_changes)
   img_path <- img_$src
   f_source <- frame_from_image(img_path)
   f_fitted <- frame_fit_to_target(f_source, f_target,

@@ -46,14 +46,14 @@ width / height (\code{source}, default), multiple of target frame's width / heig
 
 \item{background}{Background color (hex or color name).}
 
-\item{line}{Border around image. Either a color or an \link[officer:sp_line]{officer::sp_line} object
-for more control.}
+\item{line}{Border around image. Either a color or an \link[officer:sp_line]{officer::sp_line} object for more control.}
 
 \item{alt}{Alternative text for image.}
 
-\item{unit}{Unit for width and height, one of \code{"in"}, \code{"cm"}, \code{"mm"}.}
+\item{unit}{One of \code{"in"} (default), \code{"cm"}, \code{"mm"}. Applies to offsets if \code{offset_mode = "units"}, and \code{.left},
+\code{.top}, \code{.width}, and\code{.height}.}
 
-\item{width, height}{Size of image file.}
+\item{.left, .top, .width, .height}{Overwrite placeholder coordinates manually. \code{unit}s apply.}
 }
 \description{
 Replacement for \code{external_image}
@@ -90,8 +90,11 @@ x <- x |>
 # via phs_with() ---
 x <- x |>
   add_slide() |>
-  phs_with(fullsize = img(file_png, scale = .5, v_just = 1, h_just = 0)) |>
-  phs_with(fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0))
+  phs_with(
+    fullsize = img(file_png, scale = .5, v_just = 1, h_just = 0),
+    fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0),
+    right = img(file_png)
+  )
 
 # More img() options
 x <- x |> add_slide(body = img(file_png, fit = "inside", scale = .65, rotation = 45))
@@ -104,5 +107,6 @@ x <- x |> add_slide() |> phs_with(
 )
 
 print(x, file_pptx)
-file_open(file_pptx) # may not work on all systems
+\dontrun{
+file_open(file_pptx)} # may not work on all systems
 }
