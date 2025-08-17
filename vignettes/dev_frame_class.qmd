@@ -194,7 +194,7 @@ Varying `h_just`, `x_offset`, and `offset_mode`. All combinations yield same res
 
 ```{r}
 #| fig-height: 6
-#| 
+#|
 # x_offset, y_offset: source bigger than target ----
 layout(matrix(1:8, ncol = 4, byrow = TRUE))
 xlim <- c(-.5, 2.5)
@@ -219,7 +219,7 @@ f1_new <- frame_fit_to_target(f1, f2, fit = "none", x_offset = -1, h_just = 0, o
 frames_draw(f1_new, f2, title = "x_offset = -1\nh_just = 0\noffset_mode = source", xlim = xlim, ylim = ylim)
 f1_new <- frame_fit_to_target(f1, f2, fit = "none", x_offset = -1, h_just = 1, offset_mode = "target")
 frames_draw(f1_new, f2, title = "x_offset = -1\nh_just = 1\noffset_mode = target", xlim = xlim, ylim = ylim)
-f1_new <- frame_fit_to_target(f1, f2, fit = "none", x_offset = - f2$width, h_just = 1, offset_mode = "units")
+f1_new <- frame_fit_to_target(f1, f2, fit = "none", x_offset = -f2$width, h_just = 1, offset_mode = "units")
 frames_draw(f1_new, f2, title = "x_offset = -target$width \nh_just = 1 \noffset_mode = units", xlim = xlim, ylim = ylim)
 ```
 
@@ -227,7 +227,7 @@ Varying `v_just`, `y_offset`, and `offset_mode`. All combiantion yield same resu
 
 ```{r}
 #| fig-height: 6
-#| 
+#|
 layout(matrix(1:8, ncol = 4, byrow = TRUE))
 
 # three offset modes with same results
