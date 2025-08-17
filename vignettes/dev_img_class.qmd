@@ -60,14 +60,13 @@ x <- x |>
   )
 
 # via phs_with() ---
-# TODO: This is wrong
 x <- x |>
   add_slide() |>
   phs_with(
-    body = img(file_png, scale = 1),
-    body = img(file_png, scale = .5)
-  ) # , v_just = .5, h_just = .5)) |>
-# phs_with(fullsize = img(file_png, scale = .5, v_just = 0, h_just = 0))
+    body = img(file_png, scale = .5, h_just = 0, v_just = 1),
+    body = img(file_png, scale = .5, rotation = 45),
+    body = img(file_png, scale = .5, h_just = 1, v_just = 0)
+  )
 
 print(x, file_out)
 # file_open(file_out)
@@ -80,5 +79,3 @@ print(x, file_out)
 doconv::to_miniature(file_out, row = c(1, 1, 2, 2)) # , fileout = file_miniature)
 # knitr::include_graphics(file_miniature)
 ```
-
-
