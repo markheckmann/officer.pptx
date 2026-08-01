@@ -1,0 +1,568 @@
+---
+title: "Inserting Images with img()"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+vignette: >
+  %\VignetteIndexEntry{Inserting Images with img()}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(officer.pptx)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# Check if doconv is available for slide previews
+has_doconv <- requireNamespace("doconv", quietly = TRUE)
+```
+
+## Introduction
+
+The `img()` function is a powerful replacement for `officer::external_img()` that makes inserting images into PowerPoint placeholders much easier. The key improvements are:
+ 
+- **Automatic size detection**: No need to manually specify image dimensions
+- **Smart positioning**: Images are automatically scaled and centered within placeholders
+- **Flexible alignment**: Control horizontal and vertical positioning with justification parameters
+- **Styling options**: Add borders, backgrounds, and rotation
+- **Multiple image formats**: Support for PNG, JPEG, GIF, TIFF, SVG, PDF, EMF, and WMF
+
+## The Problem with `external_img()`
+ 
+When using `officer::external_img()`, you typically need to specify the image dimensions manually. If you don't, the image may not fit properly within the placeholder. The `img()` function solves this by automatically detecting image dimensions and fitting the image inside the placeholder while preserving the aspect ratio.
+
+## Supported Image Formats
+
+The `img()` function supports automatic size detection for the following formats:
+
+| Format | Extension | Size Detection |
+|--------|-----------|----------------|
+| PNG | `.png` | via `magick` |
+| JPEG | `.jpg`, `.jpeg` | via `magick` |
+| GIF | `.gif` | via `magick` |
+| TIFF | `.tiff` | via `magick` |
+| SVG | `.svg` | via `magick` |
+| PDF | `.pdf` | via `pdftools` |
+| EMF | `.emf` | native (header parsing) |
+| WMF | `.wmf` | native (placeable header) |
+
+::: {.callout-note}
+WMF files require an Aldus Placeable Metafile header for automatic size detection. If your WMF file doesn't have this header, you can still use it by manually specifying `.width` and `.height`.
+:::
+
+## Basic Usage
+
+The simplest way to use `img()` is to just pass the image path. The image will be automatically scaled to fit inside the placeholder and centered.
+
+```{r}
+#| echo: true
+
+# Create a sample image
+file_png <- tempfile(fileext = ".png")
+png(file_png, width = 600, height = 400)
+plot(1:10, col = "steelblue", pch = 16, cex = 2, 
+     xlab = "X", ylab = "Y", main = "Sample Plot")
+dev.off()
+
+# Insert into a slide - that's it!
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(
+    title = "Basic Usage - Automatic Fit",
+    body = img(file_png)
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.5
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx)
+}
+```
+
+Compare this to the traditional approach with `external_img()` where you would need to specify dimensions manually or deal with improper sizing.
+
+## Function Parameters
+
+The `img()` function offers many parameters to control image placement and styling:
+
+```r
+img(
+ src,                    # Image file path
+ fit = "inside",         # How to fit: "inside", "outside", "width", "height", "fill", "none"
+ scale = 1,              # Scale factor (0-1 for smaller, >1 for larger)
+ h_just = 0.5,           # Horizontal justification (0=left, 0.5=center, 1=right)
+ v_just = 0.5,           # Vertical justification (0=bottom, 0.5=center, 1=top)
+ x_offset = 0,           # Horizontal offset
+ y_offset = 0,           # Vertical offset
+ offset_mode = "source", # How to interpret offsets: "source", "target", "units"
+ rotation = 0,           # Rotation in degrees (anti-clockwise)
+ background = "transparent",  # Background color
+ line = sp_line(),       # Border specification
+ alt = "",               # Alternative text for accessibility
+ unit = "in",            # Unit for manual dimensions: "in", "cm", "mm"
+ .left = NULL,           # Override left position
+ .top = NULL,            # Override top position
+ .width = NULL,          # Override width
+ .height = NULL          # Override height
+)
+```
+
+## Scaling and Fitting
+
+### The `scale` Parameter
+
+The `scale` parameter allows you to resize the image after fitting:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(
+    title = "scale = 1 (default, full size)",
+    body = img(file_png, scale = 1)
+  ) |>
+  add_slide(
+    title = "scale = 0.7 (70% size)",
+    body = img(file_png, scale = 0.7)
+  ) |>
+  add_slide(
+    title = "scale = 0.5 (50% size)",
+    body = img(file_png, scale = 0.5)
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
+}
+```
+
+### The `fit` Parameter
+
+The `fit` parameter controls how the image is scaled relative to the placeholder:
+
+- **`"inside"`** (default): Scale image to fit entirely inside the placeholder
+- **`"outside"`**: Scale image to completely cover the placeholder
+- **`"width"`**: Match the placeholder width exactly
+- **`"height"`**: Match the placeholder height exactly
+- **`"fill"`**: Stretch to fill (may distort aspect ratio)
+- **`"none"`**: Use original image size
+
+```{r}
+#| echo: true
+
+# Helper function to add a shaded placeholder area before the image
+# This visualizes the placeholder boundary
+add_slide_with_ph_outline <- function(x, title, img_obj) {
+  x |>
+    add_slide(title = title) |>
+    ph_with(
+      value = block_list(fpar("")),
+      location = ph_location_type("body"),
+      bg = "#E3F2FD"  # light blue background to show placeholder area
+    ) |>
+    ph_with(value = img_obj, location = "body")
+}
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide_with_ph_outline("fit = 'inside' (default)", img(file_png, fit = "inside")) |>
+  add_slide_with_ph_outline("fit = 'width'", img(file_png, fit = "width")) |>
+  add_slide_with_ph_outline("fit = 'height'", img(file_png, fit = "height")) |>
+  add_slide_with_ph_outline("fit = 'fill' (stretches)", img(file_png, fit = "fill"))
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 2, 2))
+}
+```
+
+## Positioning and Alignment
+
+### Justification with `h_just` and `v_just`
+
+Control where the image is positioned within the placeholder:
+
+- `h_just`: Horizontal position (0 = left, 0.5 = center, 1 = right)
+- `v_just`: Vertical position (0 = bottom, 0.5 = center, 1 = top)
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(
+    title = "Top-Left (h_just=0, v_just=1)",
+    body = img(file_png, scale = 0.6, h_just = 0, v_just = 1)
+  ) |>
+  add_slide(
+    title = "Center (default)",
+    body = img(file_png, scale = 0.6, h_just = 0.5, v_just = 0.5)
+  ) |>
+  add_slide(
+    title = "Bottom-Right (h_just=1, v_just=0)",
+    body = img(file_png, scale = 0.6, h_just = 1, v_just = 0)
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
+}
+```
+
+### Offsets with `x_offset` and `y_offset`
+
+Add extra spacing to fine-tune positioning. By default, offsets are multiples of the scaled image size:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(title = "Using x_offset for side-by-side images") |>
+  phs_with(
+    body = img(file_png, scale = 0.4, x_offset = -1.1),
+    body = img(file_png, scale = 0.4, x_offset = 0),
+    body = img(file_png, scale = 0.4, x_offset = 1.1)
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.5
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx)
+}
+```
+
+The `offset_mode` parameter controls how offsets are interpreted:
+
+- **`"source"`** (default): Offset as multiple of the scaled image's width/height
+- **`"target"`**: Offset as multiple of the placeholder's width/height
+- **`"units"`**: Offset in raw units (inches by default, see `unit` parameter)
+
+## Styling Options
+
+### Rotation
+
+Rotate the image anti-clockwise:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(title = "rotation = 0 (default)", body = img(file_png, scale = 0.7)) |>
+  add_slide(title = "rotation = 15", body = img(file_png, scale = 0.7, rotation = 15)) |>
+  add_slide(title = "rotation = 45", body = img(file_png, scale = 0.7, rotation = 45))
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
+}
+```
+
+### Background Color
+
+Add a background color behind the image (useful for images with transparency):
+
+```{r}
+#| echo: true
+
+# Create image with transparent background
+file_png_transp <- tempfile(fileext = ".png")
+png(file_png_transp, width = 600, height = 400, bg = "transparent")
+plot(1:10, col = "steelblue", pch = 16, cex = 3,
+     xlab = "X", ylab = "Y", main = "Transparent Background")
+dev.off()
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(
+    title = "No background (transparent)",
+    body = img(file_png_transp, scale = 0.7)
+  ) |>
+  add_slide(
+    title = "background = 'lightblue'",
+    body = img(file_png_transp, scale = 0.7, background = "lightblue")
+  ) |>
+  add_slide(
+    title = "background = '#FFE4E1' (misty rose)",
+    body = img(file_png_transp, scale = 0.7, background = "#FFE4E1")
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
+}
+```
+
+### Border / Line
+
+Add a border around the image. You can use a simple color name or an `sp_line()` object for more control:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(
+    title = "Simple border: line = 'red'",
+    body = img(file_png, scale = 0.7, line = "red")
+  ) |>
+  add_slide(
+    title = "Thick dashed border",
+    body = img(file_png, scale = 0.7, 
+               line = sp_line(color = "darkblue", lwd = 3, lty = "dash"))
+  ) |>
+  add_slide(
+    title = "Combined: border + background",
+    body = img(file_png, scale = 0.7, 
+               line = sp_line(color = "darkgreen", lwd = 2),
+               background = "#E8F5E9")
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
+}
+```
+
+## Multiple Images on One Slide
+
+You can add multiple images to the same placeholder using `phs_with()`:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(title = "Multiple images with different positions") |>
+  phs_with(
+    body = img(file_png, scale = 0.45, h_just = 0, v_just = 1, line = "blue"),
+    body = img(file_png, scale = 0.45, h_just = 1, v_just = 0, line = "red"),
+    body = img(file_png, scale = 0.35, h_just = 0.5, v_just = 0.5, 
+               rotation = 10, line = "green")
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4.5
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx)
+}
+```
+
+## Using `img()` with `ph_with()`
+
+The `img()` function works seamlessly with `officer::ph_with()`. You can even override `img()` settings in the `ph_with()` call:
+
+```{r}
+#| echo: true
+
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  add_slide(title = "Settings in img()") |>
+  ph_with(
+    value = img(file_png, scale = 0.7, line = "blue"),
+    location = "body"
+  ) |>
+  add_slide(title = "Override settings in ph_with()") |>
+  ph_with(
+    value = img(file_png, scale = 0.7),
+    location = "body",
+    rotation = 20,
+    background = "#FFF3E0",
+    line = sp_line(color = "orange", lwd = 2)
+  )
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 4.5
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1))
+}
+```
+
+## Manual Dimension Override
+
+For cases where automatic size detection doesn't work (e.g., WMF files without placeable header) or when you want specific dimensions, use the `.left`, `.top`, `.width`, and `.height` parameters:
+
+```{r}
+#| eval: false
+
+# Manually specify image dimensions (in inches by default)
+add_slide(body = img(
+  "image_without_size_info.wmf",
+  .width = 4,
+  .height = 3
+))
+
+# Use different units
+add_slide(body = img(
+  file_png,
+  .width = 100,
+  .height = 80,
+  unit = "mm"
+))
+
+# Completely custom position and size
+add_slide(body = img(
+  file_png,
+  .left = 1,
+ .top = 1,
+  .width = 3,
+  .height = 2,
+  unit = "in"
+))
+```
+
+## Complete Example
+
+Here's a complete example demonstrating various `img()` features:
+
+```{r}
+#| echo: true
+
+# Create sample image
+file_plot <- tempfile(fileext = ".png")
+png(file_plot, width = 600, height = 400)
+plot(mtcars$mpg, mtcars$hp, 
+     col = "steelblue", pch = 19, cex = 1.5,
+     xlab = "MPG", ylab = "Horsepower",
+     main = "Motor Trend Car Data")
+dev.off()
+
+# Build presentation
+file_pptx <- tempfile(fileext = ".pptx")
+x <- read_pptx() |>
+  layout_default("Title and Content") |>
+  # Slide 1: Basic insertion
+  add_slide(title = "Default Settings", body = img(file_plot)) |>
+  # Slide 2: Scaled and positioned
+  add_slide(
+    title = "Scaled 70%, Top-Left",
+    body = img(file_plot, scale = 0.7, h_just = 0, v_just = 1)
+  ) |>
+  # Slide 3: With styling
+  add_slide(
+    title = "With Border and Background",
+    body = img(file_plot, scale = 0.8, background = "#f5f5f5",
+               line = sp_line(color = "gray40", lwd = 2))
+  ) |>
+  # Slide 4: Rotated
+  add_slide(
+    title = "Rotated 15 Degrees",
+    body = img(file_plot, scale = 0.7, rotation = 15)
+  ) |>
+  # Slide 5: Multiple images
+  add_slide(title = "Multiple Images") |>
+  phs_with(
+    body = img(file_plot, scale = 0.45, h_just = 0, v_just = 1, line = "steelblue"),
+    body = img(file_plot, scale = 0.45, h_just = 1, v_just = 0, line = "coral", rotation = 8)
+  )
+
+print(x, file_pptx)
+```
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+if (has_doconv) {
+  doconv::to_miniature(file_pptx, row = c(1, 1, 1, 2, 2))
+}
+```
+
+## Tips and Best Practices
+
+1. **Use `fit = "inside"` (default)** for most cases to ensure the entire image is visible.
+
+2. **Combine `scale` with justification** to position smaller images exactly where you want them.
+
+3. **Use `sp_line()` for detailed border control** when you need specific line widths or dash patterns.
+
+4. **Set `alt` text** for accessibility compliance in professional presentations.
+
+5. **Use `offset_mode = "units"`** when you need precise pixel-perfect positioning.
+
+6. **For WMF files**, ensure they have a placeable header, or provide manual dimensions.
+
+## See Also
+
+- `officer::external_img()` - The original function that `img()` replaces
+- `officer::ph_with()` - For adding content to placeholders
+- `officer::sp_line()` - For border/line specifications
+- `phs_with()` - For adding multiple items to placeholders
