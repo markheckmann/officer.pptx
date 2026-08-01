@@ -7,7 +7,7 @@
 text_replace(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...)
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link{officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to replace. Regex is not interpreted.}
 

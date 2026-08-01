@@ -18,7 +18,7 @@ pptx_image_insert_at_shape_temp(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link{officer} object. See \code{\link[=read_pptx]{read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{image}{\verb{[character]}\cr Path to image file.}
 

@@ -22,7 +22,7 @@ short forms can be used, as listed in section \code{"Short forms"}.}
 
 \item{...}{further arguments passed to or from other methods. When
 adding a \code{ggplot} object or \code{plot_instr}, these arguments will be used
-by png function.}
+by the png function.}
 }
 \description{
 Add image to placeholder

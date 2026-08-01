@@ -3,6 +3,7 @@
 S3method(as.character,frame)
 S3method(print,frame)
 S3method(print,img)
+export(clone_slide)
 export(example_image)
 export(example_pptx)
 export(file_open)

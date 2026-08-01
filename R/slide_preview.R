@@ -189,11 +189,14 @@ pptx_to_pdf_v2 <- function(path_pptx, path_pdf = NULL) {
 #' @example inst/ext/examples/example-slide-to-png.R
 slide_to_png <- function(x, path = NULL, slide_idx = NULL) {
   if (!soffice_available()) {
-    cli::cli_abort(c(
-      "LibreOffice not found.",
-      "x" = "{.fn slide_to_png} requires LibreOffice to be installed and on the PATH",
-      "i" = "Try command {.code soffice --version}. It must return something."
-    ))
+    cli::cli_abort(
+      call = NULL,
+      c(
+        "LibreOffice not found.",
+        "x" = "{.fn slide_to_png} requires LibreOffice to be installed and on the PATH",
+        "i" = "Try command {.code soffice --version}. It must return something."
+      )
+    )
   }
   assert_pkg_namespace("processx")
   assert_pkg_namespace("pdftools")
@@ -206,10 +209,13 @@ slide_to_png <- function(x, path = NULL, slide_idx = NULL) {
   if (is.character(path)) {
     ext <- tools::file_ext(path)
     if (tolower(ext) != "png") {
-      cli::cli_abort(c(
-        "{.arg path} must be a {.val .png} file",
-        "x" = "Found extension {.val .{ext}} instead"
-      ))
+      cli::cli_abort(
+        call = NULL,
+        c(
+          "{.arg path} must be a {.val .png} file",
+          "x" = "Found extension {.val .{ext}} instead"
+        )
+      )
     }
   }
 
@@ -308,7 +314,6 @@ prep_row_arg <- function(x, slide_idx) {
   ii[i_used] <- row_arg
   ii
 }
-
 
 
 #' Plot a slide preview (experimental, see issue #5)
