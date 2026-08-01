@@ -63,12 +63,21 @@ WMF files require an Aldus Placeable Metafile header for automatic size detectio
 
 The simplest way to use `img()` is to just pass the image path. The image will be automatically scaled to fit inside the placeholder and centered.
 
+::: {.callout-tip}
+Throughout this vignette, the dashed gray border indicates the placeholder boundary. It is added using `ph_visualize()` via the helper function `ph_frame()` defined below.
+:::
+
 ```{r}
 #| echo: true
 
+# Helper to add a dashed gray placeholder frame
+ph_frame <- function(x, ph = "body") {
+  ph_visualize(x, ph = ph, line = sp_line(color = "gray50", lwd = 1.5, lty = "dash"))
+}
+
 # Create a sample image
 file_png <- tempfile(fileext = ".png")
-png(file_png, width = 600, height = 400)
+png(file_png, width = 500, height = 400)
 plot(1:10, col = "steelblue", pch = 16, cex = 2, 
      xlab = "X", ylab = "Y", main = "Sample Plot")
 dev.off()
@@ -80,7 +89,8 @@ x <- read_pptx() |>
   add_slide(
     title = "Basic Usage - Automatic Fit",
     body = img(file_png)
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -138,14 +148,17 @@ x <- read_pptx() |>
     title = "scale = 1 (default, full size)",
     body = img(file_png, scale = 1)
   ) |>
+  ph_frame() |>
   add_slide(
     title = "scale = 0.7 (70% size)",
     body = img(file_png, scale = 0.7)
   ) |>
+  ph_frame() |>
   add_slide(
     title = "scale = 0.5 (50% size)",
     body = img(file_png, scale = 0.5)
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -170,29 +183,26 @@ The `fit` parameter controls how the image is scaled relative to the placeholder
 - **`"fill"`**: Stretch to fill (may distort aspect ratio)
 - **`"none"`**: Use original image size
 
+The dashed gray border in the examples below shows the placeholder boundary using `ph_visualize()`:
+
 ```{r}
 #| echo: true
-
-# Helper function to add a shaded placeholder area before the image
-# This visualizes the placeholder boundary
-add_slide_with_ph_outline <- function(x, title, img_obj) {
-  x |>
-    add_slide(title = title) |>
-    ph_with(
-      value = block_list(fpar("")),
-      location = ph_location_type("body"),
-      bg = "#E3F2FD"  # light blue background to show placeholder area
-    ) |>
-    ph_with(value = img_obj, location = "body")
-}
 
 file_pptx <- tempfile(fileext = ".pptx")
 x <- read_pptx() |>
   layout_default("Title and Content") |>
-  add_slide_with_ph_outline("fit = 'inside' (default)", img(file_png, fit = "inside")) |>
-  add_slide_with_ph_outline("fit = 'width'", img(file_png, fit = "width")) |>
-  add_slide_with_ph_outline("fit = 'height'", img(file_png, fit = "height")) |>
-  add_slide_with_ph_outline("fit = 'fill' (stretches)", img(file_png, fit = "fill"))
+  add_slide(title = "fit = 'inside' (default)") |>
+  ph_with(img(file_png, fit = "inside"), location = "body") |>
+  ph_frame() |>
+  add_slide(title = "fit = 'width'") |>
+  ph_with(img(file_png, fit = "width"), location = "body") |>
+  ph_frame() |>
+  add_slide(title = "fit = 'height'") |>
+  ph_with(img(file_png, fit = "height"), location = "body") |>
+  ph_frame() |>
+  add_slide(title = "fit = 'fill' (stretches)") |>
+  ph_with(img(file_png, fit = "fill"), location = "body") |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -225,14 +235,17 @@ x <- read_pptx() |>
     title = "Top-Left (h_just=0, v_just=1)",
     body = img(file_png, scale = 0.6, h_just = 0, v_just = 1)
   ) |>
+  ph_frame() |>
   add_slide(
     title = "Center (default)",
     body = img(file_png, scale = 0.6, h_just = 0.5, v_just = 0.5)
   ) |>
+  ph_frame() |>
   add_slide(
     title = "Bottom-Right (h_just=1, v_just=0)",
     body = img(file_png, scale = 0.6, h_just = 1, v_just = 0)
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -261,7 +274,8 @@ x <- read_pptx() |>
     body = img(file_png, scale = 0.4, x_offset = -1.1),
     body = img(file_png, scale = 0.4, x_offset = 0),
     body = img(file_png, scale = 0.4, x_offset = 1.1)
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -294,8 +308,11 @@ file_pptx <- tempfile(fileext = ".pptx")
 x <- read_pptx() |>
   layout_default("Title and Content") |>
   add_slide(title = "rotation = 0 (default)", body = img(file_png, scale = 0.7)) |>
+  ph_frame() |>
   add_slide(title = "rotation = 15", body = img(file_png, scale = 0.7, rotation = 15)) |>
-  add_slide(title = "rotation = 45", body = img(file_png, scale = 0.7, rotation = 45))
+  ph_frame() |>
+  add_slide(title = "rotation = 45", body = img(file_png, scale = 0.7, rotation = 45)) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -330,14 +347,17 @@ x <- read_pptx() |>
     title = "No background (transparent)",
     body = img(file_png_transp, scale = 0.7)
   ) |>
+  ph_frame() |>
   add_slide(
     title = "background = 'lightblue'",
     body = img(file_png_transp, scale = 0.7, background = "lightblue")
   ) |>
+  ph_frame() |>
   add_slide(
     title = "background = '#FFE4E1' (misty rose)",
     body = img(file_png_transp, scale = 0.7, background = "#FFE4E1")
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -365,17 +385,20 @@ x <- read_pptx() |>
     title = "Simple border: line = 'red'",
     body = img(file_png, scale = 0.7, line = "red")
   ) |>
+  ph_frame() |>
   add_slide(
     title = "Thick dashed border",
     body = img(file_png, scale = 0.7, 
                line = sp_line(color = "darkblue", lwd = 3, lty = "dash"))
   ) |>
+  ph_frame() |>
   add_slide(
     title = "Combined: border + background",
     body = img(file_png, scale = 0.7, 
                line = sp_line(color = "darkgreen", lwd = 2),
                background = "#E8F5E9")
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -405,7 +428,8 @@ x <- read_pptx() |>
     body = img(file_png, scale = 0.45, h_just = 1, v_just = 0, line = "red"),
     body = img(file_png, scale = 0.35, h_just = 0.5, v_just = 0.5, 
                rotation = 10, line = "green")
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -434,14 +458,17 @@ x <- read_pptx() |>
     value = img(file_png, scale = 0.7, line = "blue"),
     location = "body"
   ) |>
+  ph_frame() |>
   add_slide(title = "Override settings in ph_with()") |>
+  # Caveat: Does not work yet. Requires https://github.com/davidgohel/officer/issues/681 to be finished first.
   ph_with(
     value = img(file_png, scale = 0.7),
     location = "body",
     rotation = 20,
     background = "#FFF3E0",
     line = sp_line(color = "orange", lwd = 2)
-  )
+  ) |>
+  ph_frame()
 print(x, file_pptx)
 ```
 
@@ -510,28 +537,33 @@ x <- read_pptx() |>
   layout_default("Title and Content") |>
   # Slide 1: Basic insertion
   add_slide(title = "Default Settings", body = img(file_plot)) |>
+  ph_frame() |>
   # Slide 2: Scaled and positioned
   add_slide(
     title = "Scaled 70%, Top-Left",
     body = img(file_plot, scale = 0.7, h_just = 0, v_just = 1)
   ) |>
+  ph_frame() |>
   # Slide 3: With styling
   add_slide(
     title = "With Border and Background",
-    body = img(file_plot, scale = 0.8, background = "#f5f5f5",
+    body = img(file_plot, scale = 0.8, background = "lightblue",
                line = sp_line(color = "gray40", lwd = 2))
   ) |>
+  ph_frame() |>
   # Slide 4: Rotated
   add_slide(
     title = "Rotated 15 Degrees",
     body = img(file_plot, scale = 0.7, rotation = 15)
   ) |>
+  ph_frame() |>
   # Slide 5: Multiple images
   add_slide(title = "Multiple Images") |>
   phs_with(
     body = img(file_plot, scale = 0.45, h_just = 0, v_just = 1, line = "steelblue"),
     body = img(file_plot, scale = 0.45, h_just = 1, v_just = 0, line = "coral", rotation = 8)
-  )
+  ) |>
+  ph_frame()
 
 print(x, file_pptx)
 ```
