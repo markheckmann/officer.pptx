@@ -1,7 +1,7 @@
 # officer.pptx 0.1.1
 
 * `img()` as a successor to `external_img()` to position an image inside a placeholder. It is easier to use with 
-  more options (#12). File formats that support size-detection: jpeg, png, gif, tiff, rsvg, emf, svg, pdf.
+  more options (#12). File formats that support size-detection: jpeg, png, gif, tiff, rsvg, emf, svg, pdf, wmf.
 * remove `add_slide()` patch as now integrated into `{officer}`.
 * remove `phs_with()`. Ported to `{officer}` as of version `0.6.8`.
 * `slide_preview` to plot a slide, `slide_to_png` to save a slide to file. Experimental version `slide_preview_2` 

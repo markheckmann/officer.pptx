@@ -163,8 +163,9 @@ get_img_dimensions <- function(file) {
     emf = get_dimensions_emf(file),
     svg = get_dimensions_svg(file),
     pdf = get_dimensions_pdf(file),
+    wmf = get_dimensions_wmf(file),
     # webp = get_dimensions_magick(file), # must be converted first.
-    cli::cli_abort("Unsupported file extension {.val .{ext}}")
+    cli::cli_abort("Unsupported file extension {.val .{ext}}", call = NULL)
   )
 }
 
@@ -261,15 +262,20 @@ get_dimensions_wmf <- function(file) {
   con <- file(file, "rb")
   on.exit(close(con), add = TRUE)
   # Check for Aldus Placeable Metafile (APM) header (0x9AC6CDD7)
-  key <- readBin(con, integer(), 1L, size = 4L, endian = "little", signed = FALSE)
-  if (isTRUE(key == as.numeric(0x9AC6CDD7))) {
+  # Read as raw bytes and convert to unsigned integer manually
+  key_raw <- readBin(con, "raw", 4L)
+  key <- sum(as.integer(key_raw) * 256^(0:3))  # little-endian to unsigned int
+  if (isTRUE(key == 0x9AC6CDD7)) {
     # APM header present: parse and compute physical size
-    invisible(readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE)) # hmf
+    invisible(readBin(con, "raw", 2L)) # hmf (handle, ignored)
     bbox <- readBin(con, integer(), 4L, size = 2L, endian = "little", signed = TRUE) # left, top, right, bottom
-    inch <- readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE) # units per inch
-    invisible(readBin(con, integer(), 1L, size = 4L, endian = "little", signed = FALSE)) # reserved
-    invisible(readBin(con, integer(), 1L, size = 2L, endian = "little", signed = FALSE)) # checksum
-    if (is.na(inch) || inch <= 0) stop("Invalid WMF placeable header: inch = ", inch)
+    inch_raw <- readBin(con, "raw", 2L)
+    inch <- sum(as.integer(inch_raw) * 256^(0:1))  # unsigned 16-bit
+    invisible(readBin(con, "raw", 4L)) # reserved
+    invisible(readBin(con, "raw", 2L)) # checksum
+    if (is.na(inch) || inch <= 0) {
+      cli::cli_abort("Invalid WMF placeable header: inch = {inch}", call = NULL)
+    }
     width_in <- (bbox[3] - bbox[1]) / inch
     height_in <- (bbox[4] - bbox[2]) / inch
     return(list(
@@ -280,7 +286,14 @@ get_dimensions_wmf <- function(file) {
       extra  = list(placeable_header = TRUE, units_per_inch = inch)
     ))
   }
-  stop("WMF without a placeable header is not supported on this system (and magick fallback failed).")
+  cli::cli_abort(
+    call = NULL,
+    c(
+      "WMF file without placeable header.",
+      "x" = "Auto-sizing not possible for this file.",
+      "i" = "Specify dimensions manually via {.arg .width} and {.arg .height} in {.fn img}."
+    )
+  )
 }
 
 

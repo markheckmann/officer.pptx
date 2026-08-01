@@ -50,3 +50,16 @@ test_that("Test frame class and methods", {
   f1_new <- frame_fit_to_target(f1, f2, fit = "outside")
   expect_identical(f1_new, frame(1.5, 2, 2, 1))
 })
+
+
+test_that("get_dimensions_wmf reads WMF with placeable header", {
+  path <- test_image("test.wmf")
+  dims <- get_img_dimensions(path)
+  expect_type(dims, "list")
+  expect_named(dims, c("width", "height", "units", "format", "extra"))
+  expect_equal(dims$format, "wmf")
+  expect_equal(dims$units, "mm")
+  expect_true(dims$width > 0)
+  expect_true(dims$height > 0)
+  expect_true(dims$extra$placeable_header)
+})

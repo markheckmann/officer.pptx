@@ -24,5 +24,5 @@ test_file <- function(name = NULL) {
 #' @noRd
 test_image <- function(name = NULL) {
   path <- test_path("testimages")
-  folder_files(path, name = name, pattern = ".png|.jpeg|.jpg", fun = "test_image")
+  folder_files(path, name = name, pattern = ".png|.jpeg|.jpg|.wmf", fun = "test_image")
 }
