@@ -49,6 +49,19 @@ project-specific conventions and user preferences for future coding agents.
   `magick`, and `quarto`.
 - Some functions require LibreOffice to be installed (e.g., `slide_to_png`).
 
+## Officer Package Integration
+
+- **Always leverage internal officer functions** instead of reimplementing
+  functionality. Many helper functions exist in officer that handle placeholder
+  resolution, location fortification, XML generation, etc.
+- Use `officer:::` to access non-exported functions when needed (e.g.,
+  `officer:::fortify_location`, `officer:::get_slide_layout`,
+  `officer:::resolve_location`).
+- Officer source code is available locally at: `/Users/markheckmann/Workspace/mh/officer`
+- Officer GitHub repository: https://github.com/davidgohel/officer
+- Before implementing new functionality, search the officer codebase for existing
+  solutions or helper functions that can be reused.
+
 ## Testing Conventions
 
 - Tests live in `tests/testthat/`.

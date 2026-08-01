@@ -1,5 +1,7 @@
 # officer.pptx 0.1.1
 
+* `ph_visualize()` to highlight placeholders on a slide with borders and/or background colors.
+  Useful for debugging placeholder positions and designing slide content (#13).
 * `img()` as a successor to `external_img()` to position an image inside a placeholder. It is easier to use with 
   more options (#12). File formats that support size-detection: jpeg, png, gif, tiff, rsvg, emf, svg, pdf, wmf.
 * remove `add_slide()` patch as now integrated into `{officer}`.
