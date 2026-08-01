@@ -61,6 +61,22 @@ project-specific conventions and user preferences for future coding agents.
 - Officer GitHub repository: https://github.com/davidgohel/officer
 - Before implementing new functionality, search the officer codebase for existing
   solutions or helper functions that can be reused.
+- Useful internal officer functions:
+  - `officer:::resolve_location()` - converts strings/numbers to `ph_location_*()`
+  - `officer:::fortify_location()` - resolves locations to coordinates
+  - `officer:::get_slide_layout()` - gets layout info for a slide
+  - `officer:::is_ph_location()` - checks if object is a location
+  - `layout_properties()` - returns all placeholders for a layout
+
+## Coding Conventions
+
+- **No checkmate**: Use simple `if`-checks with `cli::cli_abort()` for input
+  validation instead of checkmate assertions.
+- **Parameter naming**: Keep consistent with `img()` and officer conventions:
+  - Use `background` (not `fill`) for background colors
+  - Use `line` with `sp_line()` for border styling
+- **Examples**: Put roxygen examples in separate files under `inst/ext/examples/`
+  and reference them with `@example inst/ext/examples/example-<function>.R`.
 
 ## Testing Conventions
 
