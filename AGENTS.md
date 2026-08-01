@@ -16,6 +16,8 @@ project-specific conventions and user preferences for future coding agents.
   only the message unless a commit was requested.
 - If rewriting commit dates, update both author and committer dates.
 - Preserve unrelated user changes in the worktree.
+- **After completing a feature (i.e., after a commit)**, proactively ask the user
+  if there are general learnings that should be added to AGENTS.md.
 
 ## Development Change Discipline
 
@@ -128,6 +130,17 @@ covr::percent_coverage(cov)
 - Use roxygen2 with markdown enabled (`Roxygen: list(markdown = TRUE)`).
 - For `@param x` documentation on rpptx objects, use fully qualified links:
   `[rpptx]\cr An [officer::officer] object. See [officer::read_pptx()].`
+
+## Vignettes
+
+- Vignettes use quarto. Render with:
+  ```bash
+  /Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto render vignettes/<file>.qmd
+  ```
+- If new functions are used in the vignette, install the package first:
+  `devtools::install()`.
+- Helper functions (like `ph_frame()`) should be defined in visible code blocks,
+  not hidden setup chunks, so readers understand what is happening.
 
 ## Key Functions and Architecture
 
