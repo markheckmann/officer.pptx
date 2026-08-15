@@ -4,10 +4,18 @@
 \alias{text_replace}
 \title{Replace text on slides}
 \usage{
-text_replace(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...)
+text_replace(
+  x,
+  pattern = NULL,
+  replacement = NULL,
+  slide_idx = NULL,
+  ...,
+  verbose = TRUE,
+  dry_run = FALSE
+)
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to replace. Regex is not interpreted.}
 
@@ -18,6 +26,15 @@ are processed.}
 
 \item{...}{\verb{[key=value]}\cr Comma separated \code{'pattern'='replacement'} pairs as an alternative to
 using the \code{pattern} and \code{replacement} args.}
+
+\item{verbose}{\verb{[logical]}\cr Print a summary of replacements to the console (default \code{TRUE}).}
+
+\item{dry_run}{\verb{[logical]}\cr If \code{TRUE}, no replacements are performed. The log is still
+collected and attached to the returned object (default \code{FALSE}).}
+}
+\value{
+The (modified) rpptx object with an attribute \code{"text_replace_log"} containing a
+tibble of replacements performed. Use \code{\link[=text_replace_log]{text_replace_log()}} to access it.
 }
 \description{
 All occurences of \code{pattern} on the selected slides are replaced with the text of \code{replacement}.

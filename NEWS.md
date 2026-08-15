@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* `text_replace()` gains `verbose`, `dry_run` arguments and a replacement log.
+  Use `text_replace_log()` to inspect what was replaced (slide, shape, pattern, count).
+  Use `text_replace_expect()` to assert expected replacement counts, optionally per slide (#3).
 * `ph_visualize()` to highlight placeholders on a slide with borders and/or background colors.
   Useful for debugging placeholder positions and designing slide content (#13).
 * `img()` as a successor to `external_img()` to position an image inside a placeholder. It is easier to use with 

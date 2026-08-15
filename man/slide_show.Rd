@@ -7,7 +7,7 @@
 slide_show(x, slide_idx, highlight = NULL)
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default),
 all slides are processed.}

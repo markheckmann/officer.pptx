@@ -20,12 +20,12 @@ image_insert(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{read_pptx()}}.}
 
 \item{image}{\verb{[character]}\cr Path to image file.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to find shapes. Interpreted as regex.
-Wrap in \link[stringr:modifiers]{stringr::fixed} for fixed string object or set \code{fixed = TRUE}.}
+Wrap in \link[stringr:fixed]{stringr::fixed} for fixed string object or set \code{fixed = TRUE}.}
 
 \item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default), all slides
 are processed.}

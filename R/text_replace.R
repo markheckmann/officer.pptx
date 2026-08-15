@@ -14,39 +14,190 @@
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
 #'   are processed.
 #' @param ... `[key=value]`\cr Comma separated `'pattern'='replacement'` pairs as an alternative to
-#' using the `pattern` and `replacement` args.
+#'   using the `pattern` and `replacement` args.
+#' @param verbose `[integer]`\cr Level of console output (default `1`).\cr
+#'   `0` = silent, `1` = one-line summary, `2` = detailed per-shape breakdown.
+#' @param dry_run `[logical]`\cr If `TRUE`, no replacements are performed. The log is still
+#'   collected and attached to the returned object (default `FALSE`).
+#' @return The (modified) rpptx object with an attribute `"text_replace_log"` containing a
+#'   tibble of replacements performed. Use [text_replace_log()] to access it.
 #' @export
 #' @example inst/ext/examples/example-text-replace.R
-text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...) {
-  assert_class(x, "rpptx")
-  slide_idx <- slide_idx %||% seq_len(x$slide$length())
-  nodesets <- lapply(slide_idx, \(idx) pptx_shapes_on_slide(x, idx))
-  for (i in seq_along(slide_idx)) {
-    cli::cli_h3("Slide {slide_idx[i]}")
-    xml_shape_text_replace_all(nodesets[[i]], pattern = pattern, replacement = replacement, ...)
+text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...,
+                         verbose = 1L, dry_run = FALSE) {
+  if (!inherits(x, "rpptx")) {
+    cli::cli_abort("{.arg x} must be an {.cls rpptx} object.", call = NULL)
   }
+  slide_idx <- slide_idx %||% seq_len(x$slide$length())
+
+  dots <- rlang::dots_list(...)
+  pattern <- c(pattern, names(dots))
+  dots_replacement <- dots |> unlist() |> unname() |> as.character()
+  replacement <- c(replacement, dots_replacement)
+  if (length(pattern) != length(replacement)) {
+    cli::cli_abort("Length of {.arg pattern} and {.arg replacement} must match.", call = NULL)
+  }
+
+  log <- dplyr::tibble(
+    slide_idx = integer(),
+    shape_name = character(),
+    pattern = character(),
+    replacement = character(),
+    count = integer()
+  )
+
+  for (i in seq_along(slide_idx)) {
+    idx <- slide_idx[i]
+    shapes <- pptx_shapes_on_slide(x, idx)
+    for (si in seq_along(shapes)) {
+      shape <- shapes[[si]]
+      shape_name <- xml_shape_get_name(shape)
+      for (pi in seq_along(pattern)) {
+        n <- xml_shape_count_matches(shape, pattern[pi])
+        if (n > 0L) {
+          log <- dplyr::bind_rows(log, dplyr::tibble(
+            slide_idx = idx,
+            shape_name = shape_name,
+            pattern = pattern[pi],
+            replacement = replacement[pi],
+            count = n
+          ))
+          if (!dry_run) {
+            for (j in seq_len(n)) {
+              xml_shape_text_replace(shape, pattern[pi], replacement[pi])
+            }
+          }
+        }
+      }
+    }
+  }
+
+  attr(x, "text_replace_log") <- log
+
+  if (verbose >= 1L && nrow(log) > 0L) {
+    n_total <- sum(log$count)
+    n_slides <- length(unique(log$slide_idx))
+    prefix <- if (dry_run) "text_replace (dry run)" else "text_replace"
+    cli::cli_alert_info("{prefix}: {n_total} replacement{?s} across {n_slides} slide{?s}")
+    if (verbose >= 2L) {
+      for (r in seq_len(nrow(log))) {
+        row <- log[r, ]
+        cli::cli_bullets(c(" " = paste0(
+          "Slide {row$slide_idx} | {.val {row$shape_name}}: ",
+          "{.val {row$pattern}} -> {.val {row$replacement}} ({row$count}x)"
+        )))
+      }
+    }
+  } else if (verbose >= 1L && nrow(log) == 0L) {
+    cli::cli_alert_info("text_replace: no matches found")
+  }
+
   x
 }
 
 
-# Repeat row or more rows in dataframe at same position
-#
-# df <- tibble(n=1:4, letter = LETTERS[1:4])
-# df_row_repeat(df) # identical
-# df_row_repeat(df, 1, 1) # no changes
-# df_row_repeat(df, 1, 2) # 1st row twice
-# df_row_repeat(df, 1, 0) # 1st row removed
+#' Get the text replacement log
+#'
+#' Returns the log tibble from the last [text_replace()] call attached to the object.
+#'
+#' @param x `[rpptx]`\cr An [officer] object that was processed by [text_replace()].
+#' @return A tibble with columns `slide_idx`, `shape_name`, `pattern`, `replacement`, `count`,
+#'   or `NULL` if no log is available.
+#' @export
+text_replace_log <- function(x) {
+  attr(x, "text_replace_log")
+}
+
+
+#' Assert expectations on text replacements
+#'
+#' Checks the replacement log attached to an rpptx object against expected counts.
+#' Typically used after [text_replace()] in a pipeline.
+#'
+#' @param x `[rpptx]`\cr An [officer] object that was processed by [text_replace()].
+#' @param pattern `[character(1)]`\cr The pattern to check.
+#' @param n `[integer(1)]`\cr Expected exact number of replacements. Mutually exclusive with
+#'   `min`/`max`.
+#' @param min `[integer(1)]`\cr Minimum expected number of replacements.
+#' @param max `[integer(1)]`\cr Maximum expected number of replacements.
+#' @param slide_idx `[numeric]`\cr Limit the check to specific slides. If `NULL` (default),
+#'   the total across all slides is checked.
+#' @return `x` invisibly (for piping).
+#' @export
+text_replace_expect <- function(x, pattern, n = NULL, min = NULL, max = NULL, slide_idx = NULL) {
+  log <- text_replace_log(x)
+  if (is.null(log)) {
+    cli::cli_abort("No text replacement log found on {.arg x}. Run {.fn text_replace} first.",
+                   call = NULL)
+  }
+  if (!is.null(n) && (!is.null(min) || !is.null(max))) {
+    cli::cli_abort("{.arg n} cannot be used together with {.arg min}/{.arg max}.", call = NULL)
+  }
+
+  log_filtered <- log[log$pattern == pattern, ]
+  if (!is.null(slide_idx)) {
+    log_filtered <- log_filtered[log_filtered$slide_idx %in% slide_idx, ]
+  }
+  actual <- sum(log_filtered$count)
+
+  scope <- if (is.null(slide_idx)) "total" else paste0("slide ", paste(slide_idx, collapse = ", "))
+
+  if (!is.null(n) && actual != n) {
+    cli::cli_abort(
+      "Expected exactly {n} replacement{?s} of {.val {pattern}} ({scope}), got {actual}.",
+      call = NULL
+    )
+  }
+  if (!is.null(min) && actual < min) {
+    cli::cli_abort(
+      "Expected at least {min} replacement{?s} of {.val {pattern}} ({scope}), got {actual}.",
+      call = NULL
+    )
+  }
+  if (!is.null(max) && actual > max) {
+    cli::cli_abort(
+      "Expected at most {max} replacement{?s} of {.val {pattern}} ({scope}), got {actual}.",
+      call = NULL
+    )
+  }
+
+  invisible(x)
+}
+
+
+# ____________----
+# INTERNAL HELPERS --------------------------------------------
+
+
+xml_shape_get_name <- function(shape) {
+  nvpr <- shape |> xml2::xml_find_first(".//p:cNvPr")
+  if (is.na(nvpr)) return(NA_character_)
+  xml2::xml_attr(nvpr, "name")
+}
+
+
+xml_shape_count_matches <- function(shape, pattern) {
+  all_text <- xml_get_runs(shape) |>
+    xml2::xml_text() |>
+    paste0(collapse = "")
+  stringr::str_count(all_text, pattern = stringr::fixed(pattern))
+}
+
+
 df_row_repeat <- function(df, idx = NULL, times = 1) {
   if (is.null(idx) || all(is.na(idx))) {
     return(df)
   }
-  checkmate::assert_data_frame(df)
-  checkmate::assert_int(idx, lower = 1L, upper = nrow(df))
-  checkmate::assert_count(times)
+  if (!is.data.frame(df)) {
+    cli::cli_abort("{.arg df} must be a data frame.", call = NULL)
+  }
+  if (!is.numeric(idx) || length(idx) != 1L || idx < 1L || idx > nrow(df)) {
+    cli::cli_abort("{.arg idx} must be a single integer in [1, {nrow(df)}].", call = NULL)
+  }
+  if (!is.numeric(times) || length(times) != 1L || times < 0L) {
+    cli::cli_abort("{.arg times} must be a non-negative integer.", call = NULL)
+  }
   ii <- seq_len(nrow(df))
-  # if (all(idx %nin% ii)) {
-  #   cli::cli_abort("{.arg idx} outside row index range [{.val {min(ii)}}, {.val {max(ii)}}]")
-  # }
   before <- df[ii < idx, ]
   repeated <- df[rep(idx, each = times), ]
   after <- df[ii > idx, ]
@@ -56,7 +207,6 @@ df_row_repeat <- function(df, idx = NULL, times = 1) {
 
 xml_shape_text_replace <- function(shape, pattern, replacement) {
   text <- original <- run_idx <- NULL
-  # get texts from all runs, concatenate and find pattern
   runs <- xml_get_runs(shape)
   runs_text <- runs |>
     xml2::xml_text() |>
@@ -66,32 +216,25 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
     as.list() |>
     stats::setNames(c("from", "to"))
   if (all(is.na(pattern_loc))) {
-    cli::cli_alert_info("No pattern to replace.")
     return(invisible(NULL))
   }
 
-  # split up text into chars
   df_runs <- dplyr::tibble(run_idx = seq_along(runs_text), text = runs_text)
   df <- df_runs |>
     dplyr::mutate(original = strsplit(text, "")) |>
     tidyr::unnest(original)
   chars_new <- strsplit(replacement, "") |> unlist()
   n_new <- length(chars_new)
-  if (replacement == "") { # handle edge case of zero length replacement
+  if (replacement == "") {
     chars_new <- ""
-    n_new <- 1 # keep this row
+    n_new <- 1
   }
-  # cli::cli_alert_info("Before: {text_old}")
 
-  # 1. find run with start of pattern position
-  # 2. delete rest of pattern from the run (and other runs)
-  # 3. insert the whole replacement at the position of first pattern character
-  # 4. (insert new run with defined run properties) => not implemented
   ii_pattern <- do.call(seq, pattern_loc)
   i_first <- ii_pattern |> utils::head(1)
-  ii_remove <- ii_pattern |> utils::tail(-1) # remove all but first character from pattern
+  ii_remove <- ii_pattern |> utils::tail(-1)
   .df <- df
-  if (length(ii_remove) > 0) { # one char patterns need no removing of rows
+  if (length(ii_remove) > 0) {
     .df <- .df[-ii_remove, ]
   }
   .df <- df_row_repeat(.df, idx = i_first, times = n_new)
@@ -106,36 +249,5 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
     dplyr::left_join(.df_runs, by = "run_idx") |>
     dplyr::mutate(replacement = tidyr::replace_na(replacement, "")) |>
     dplyr::select(-original)
-  # text_new <- paste0(df_all$replacement, collapse = "")
-  # cli::cli_alert_info("After:  {text_new}")
-  xml2::xml_text(runs) <- df_all$replacement # NOTE: empty runs are not deleted currently
-}
-
-
-.xml_shape_text_replace_all <- function(shape, pattern, replacement) {
-  all_text <- xml_get_runs(shape) |>
-    xml2::xml_text() |>
-    paste0(collapse = "")
-  n_matches <- stringr::str_count(all_text, pattern = stringr::fixed(pattern))
-  cli::cli_alert_info("Replace {.val {n_matches}} times {.val {pattern}} => {.val {replacement}}")
-  for (i in seq_len(n_matches)) {
-    xml_shape_text_replace(shape, pattern, replacement)
-  }
-}
-
-
-xml_shape_text_replace_all <- function(shape, pattern = NULL, replacement = NULL, ...) {
-  dots <- rlang::dots_list(...)
-  pattern <- c(pattern, names(dots))
-  dots_replacement <- dots |>
-    unlist() |>
-    unname() |>
-    as.character()
-  replacement <- c(replacement, dots_replacement)
-  if (length(pattern) != length(replacement)) {
-    stop("Length of pattern and replacement must match")
-  }
-  for (i in seq_along(pattern)) {
-    .xml_shape_text_replace_all(shape, pattern[i], replacement[i])
-  }
+  xml2::xml_text(runs) <- df_all$replacement
 }

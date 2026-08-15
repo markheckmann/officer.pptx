@@ -10,7 +10,7 @@ shape_hide(x, pattern, slide_idx = NULL)
 shape_unhide(x, pattern, slide_idx = NULL)
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer::officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{read_pptx()}}.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to find shapes to hide/unhide. Regex is not interpreted.}
 

@@ -7,22 +7,18 @@
 ph_with.img(x, value, location, ...)
 }
 \arguments{
-\item{x}{an rpptx object}
+\item{x}{An \code{rpptx} object.}
 
-\item{value}{object to add as a new shape. Supported objects
-are vectors, data.frame, graphics, block of formatted paragraphs,
-unordered list of formatted paragraphs,
-pretty tables with package flextable, editable graphics with
+\item{value}{Object to add as a new shape. Supported objects are vectors, data.frame, graphics, block of formatted
+paragraphs, unordered list of formatted paragraphs, pretty tables with package flextable, editable graphics with
 package rvg, 'Microsoft' charts with package mschart.}
 
-\item{location}{a placeholder location object or a location short form. It will be used
-to specify the location of the new shape. This location can be defined with a call to one
-of the \verb{ph_location_*} functions (see section \code{"see also"}). In \code{ph_with()}, several location
-short forms can be used, as listed in section \code{"Short forms"}.}
+\item{location}{A placeholder location object or a location short form. It will be used to specify the location of
+the new shape. This location can be defined with a call to one of the \verb{ph_location_*} functions (see section
+\code{"see also"}). In \code{ph_with()}, several location short forms can be used, as listed in section \code{"Short forms"}.}
 
-\item{...}{further arguments passed to or from other methods. When
-adding a \code{ggplot} object or \code{plot_instr}, these arguments will be used
-by the png function.}
+\item{...}{Modifiers (key-value pairs) to change a placeholder's size, position or appearance (see section
+\code{"Modifiers"}) \emph{and} arguments passed to \code{\link[ragg:agg_png]{ragg::agg_png()}} (for \code{gg} or \code{plot_instr} objects only).}
 }
 \description{
 Add image to placeholder

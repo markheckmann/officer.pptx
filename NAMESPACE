@@ -25,13 +25,19 @@ export(slide_preview_3)
 export(slide_show)
 export(slide_to_png)
 export(text_replace)
+export(text_replace_expect)
+export(text_replace_log)
 export(width)
 import(officer)
 import(xml2)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,mutate)
-importFrom(dplyr,tibble)
+importFrom(dplyr,
+  bind_cols,
+  bind_rows,
+  mutate,
+  tibble
+)
 importFrom(stats,setNames)
-importFrom(tidyr,unnest)
-importFrom(tidyr,unnest_wider)
+importFrom(tidyr,
+  unnest,
+  unnest_wider
+)
