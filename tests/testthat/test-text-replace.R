@@ -220,3 +220,50 @@ test_that("text_replace slide_idx limits to single slide only", {
   texts_2 <- vapply(shapes_2, xml2::xml_text, character(1))
   expect_true(any(grepl("[2]", texts_2, fixed = TRUE)))
 })
+
+
+test_that("text_replace with empty replacement deletes pattern", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "{1}" = "", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(sum(log$count) >= 1L)
+
+  shapes <- pptx_shapes_on_slide(x, 1)
+  texts <- vapply(shapes, xml2::xml_text, character(1))
+  expect_false(any(grepl("{1}", texts, fixed = TRUE)))
+})
+
+
+test_that("text_replace expands multi-char replacement correctly", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "{1}" = "Hello World", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(sum(log$count) >= 1L)
+
+  shapes <- pptx_shapes_on_slide(x, 1)
+  texts <- vapply(shapes, xml2::xml_text, character(1))
+  expect_true(any(grepl("Hello World", texts, fixed = TRUE)))
+})
+
+
+test_that("text_replace errors on unnamed ... arguments", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  expect_error(
+    text_replace(x, pattern = "a", replacement = "b", slide_idx = NULL, "extra", verbose = 0L),
+    "must be named"
+  )
+})
+
+
+test_that("text_replace auto-sorts patterns longest first", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "[2]" = "SINGLE", "[[2]]" = "DOUBLE", slide_idx = 2, verbose = 0L)
+  shapes <- pptx_shapes_on_slide(x, 2)
+  title_text <- xml2::xml_text(shapes[[1]])
+  expect_true(grepl("DOUBLE", title_text, fixed = TRUE))
+  expect_true(grepl("SINGLE", title_text, fixed = TRUE))
+})

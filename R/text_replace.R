@@ -4,15 +4,15 @@
 
 #' Replace text on slides
 #'
-#' All occurences of `pattern` on the selected slides are replaced with the text of `replacement`.
+#' All occurrences of `pattern` on the selected slides are replaced with the text of `replacement`.
 #' For the formatting, only the first character of the matched pattern is relevant.
 #' The whole replacement will have this format.
 #'
 #' Patterns are matched as fixed strings (no regex). Since matching is substring-based,
 #' shorter patterns may match inside longer ones (e.g., `"[2]"` matches inside `"[[2]]"`).
-#' To avoid this, replace longer patterns first.
+#' Patterns are automatically sorted longest-first within each call to avoid such collisions.
 #'
-#' @param x `[rpptx]`\cr An [officer] object. See [officer::read_pptx()].
+#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
 #' @param replacement `[character]`\cr Vector with replacements.
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
@@ -41,6 +41,9 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
 
   dots <- list(...)
+  if (length(dots) > 0L && (is.null(names(dots)) || any(names(dots) == ""))) {
+    cli::cli_abort("All {.arg ...} arguments must be named (pattern = replacement).", call = NULL)
+  }
   pattern <- c(pattern, names(dots))
   dots_replacement <- dots |> unlist() |> unname() |> as.character()
   replacement <- c(replacement, dots_replacement)
@@ -48,13 +51,12 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
     cli::cli_abort("Length of {.arg pattern} and {.arg replacement} must match.", call = NULL)
   }
 
-  log <- dplyr::tibble(
-    slide_idx = integer(),
-    shape_name = character(),
-    pattern = character(),
-    replacement = character(),
-    count = integer()
-  )
+  ord <- order(nchar(pattern), decreasing = TRUE)
+  pattern <- pattern[ord]
+  replacement <- replacement[ord]
+
+  log_rows <- vector("list", 64L)
+  log_i <- 0L
 
   for (i in seq_along(slide_idx)) {
     idx <- slide_idx[i]
@@ -66,19 +68,35 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
       for (pi in seq_along(pattern)) {
         n <- xml_shape_count_matches(shape, pattern[pi])
         if (n > 0L) {
-          log <- dplyr::bind_rows(log, dplyr::tibble(
+          log_i <- log_i + 1L
+          if (log_i > length(log_rows)) {
+            log_rows <- c(log_rows, vector("list", length(log_rows)))
+          }
+          log_rows[[log_i]] <- dplyr::tibble(
             slide_idx = idx,
             shape_name = shape_name,
             pattern = pattern[pi],
             replacement = replacement[pi],
             count = n
-          ))
+          )
           if (!dry_run) {
             xml_shape_text_replace(shape, pattern[pi], replacement[pi])
           }
         }
       }
     }
+  }
+
+  log <- if (log_i == 0L) {
+    dplyr::tibble(
+      slide_idx = integer(),
+      shape_name = character(),
+      pattern = character(),
+      replacement = character(),
+      count = integer()
+    )
+  } else {
+    dplyr::bind_rows(log_rows[seq_len(log_i)])
   }
 
   attr(x, "text_replace_log") <- log
@@ -109,7 +127,7 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
 #'
 #' Returns the log tibble from the last [text_replace()] call attached to the object.
 #'
-#' @param x `[rpptx]`\cr An [officer] object that was processed by [text_replace()].
+#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
 #' @return A tibble with columns `slide_idx`, `shape_name`, `pattern`, `replacement`, `count`,
 #'   or `NULL` if no log is available.
 #' @export
@@ -123,7 +141,7 @@ text_replace_log <- function(x) {
 #' Checks the replacement log attached to an rpptx object against expected counts.
 #' Typically used after [text_replace()] in a pipeline.
 #'
-#' @param x `[rpptx]`\cr An [officer] object that was processed by [text_replace()].
+#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
 #' @param pattern `[character(1)]`\cr The pattern to check.
 #' @param n `[integer(1)]`\cr Expected exact number of replacements. Mutually exclusive with
 #'   `min`/`max`.
@@ -248,8 +266,9 @@ df_row_repeat <- function(df, idx = NULL, times = 1) {
 # characters back per run and write the new text to the XML nodes.
 # The replacement inherits the formatting of the first matched character's run.
 xml_shape_text_replace <- function(shape, pattern, replacement) {
-  text <- original <- run_idx <- NULL
+  original <- run_idx <- NULL
   runs <- xml_get_runs(shape)
+  if (length(runs) == 0L) return(invisible(NULL))
   runs_text <- runs |>
     xml2::xml_text() |>
     stats::setNames(paste0("r_", seq_along(runs)))

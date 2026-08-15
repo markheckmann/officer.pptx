@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* `text_replace()` now auto-sorts patterns longest-first to prevent substring
+  collisions, validates that all `...` args are named, and uses faster log
+  accumulation internally.
 * `text_replace()` gains `verbose`, `dry_run` arguments and a replacement log.
   Use `text_replace_log()` to inspect what was replaced (slide, shape, pattern, count).
   Use `text_replace_expect()` to assert expected replacement counts, optionally per slide (#3).
