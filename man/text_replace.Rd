@@ -10,7 +10,9 @@ text_replace(
   replacement = NULL,
   slide_idx = NULL,
   ...,
-  verbose = TRUE,
+  ph_type = NULL,
+  exclude_ph_type = NULL,
+  verbose = 1L,
   dry_run = FALSE
 )
 }
@@ -27,7 +29,15 @@ are processed.}
 \item{...}{\verb{[key=value]}\cr Comma separated \code{'pattern'='replacement'} pairs as an alternative to
 using the \code{pattern} and \code{replacement} args.}
 
-\item{verbose}{\verb{[logical]}\cr Print a summary of replacements to the console (default \code{TRUE}).}
+\item{ph_type}{\verb{[character]}\cr Placeholder types to include (e.g., \code{"body"}, \code{"title"},
+\code{"ftr"}, \code{"dt"}, \code{"sldNum"}). If \code{NULL} (default), all shapes are included.
+Non-placeholder shapes are excluded when this is set.}
+
+\item{exclude_ph_type}{\verb{[character]}\cr Placeholder types to exclude. Applied after
+\code{ph_type} filtering. Non-placeholder shapes are not affected by this filter.}
+
+\item{verbose}{\verb{[integer]}\cr Level of console output (default \code{1}).\cr
+\code{0} = silent, \code{1} = one-line summary, \code{2} = detailed per-shape breakdown.}
 
 \item{dry_run}{\verb{[logical]}\cr If \code{TRUE}, no replacements are performed. The log is still
 collected and attached to the returned object (default \code{FALSE}).}

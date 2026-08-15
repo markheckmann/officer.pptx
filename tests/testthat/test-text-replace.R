@@ -112,3 +112,41 @@ test_that("text_replace with no matches returns empty log", {
   log <- text_replace_log(x)
   expect_equal(nrow(log), 0L)
 })
+
+
+test_that("text_replace ph_type includes only matching placeholders", {
+  file_in <- example_pptx("text_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "{1}" = "X", ph_type = "title", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(nrow(log) > 0L)
+  expect_true(all(log$shape_name == "Titel 3"))
+})
+
+
+test_that("text_replace ph_type excludes non-placeholder shapes", {
+  file_in <- example_pptx("text_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "{1}" = "X", ph_type = "title", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_false(any(log$shape_name %in% c("Textplatzhalter 3", "Rechteck 5", "Rechteck 6")))
+})
+
+
+test_that("text_replace exclude_ph_type removes matching placeholders", {
+  file_in <- example_pptx("text_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "{1}" = "X", exclude_ph_type = "title", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_false(any(log$shape_name == "Titel 3"))
+  expect_true(nrow(log) > 0L)
+})
+
+
+test_that("text_replace exclude_ph_type keeps non-placeholder shapes", {
+  file_in <- example_pptx("text_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "@" = "X", exclude_ph_type = "title", verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(any(log$shape_name == "Rechteck 6"))
+})

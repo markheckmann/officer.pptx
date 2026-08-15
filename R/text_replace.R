@@ -15,6 +15,11 @@
 #'   are processed.
 #' @param ... `[key=value]`\cr Comma separated `'pattern'='replacement'` pairs as an alternative to
 #'   using the `pattern` and `replacement` args.
+#' @param ph_type `[character]`\cr Placeholder types to include (e.g., `"body"`, `"title"`,
+#'   `"ftr"`, `"dt"`, `"sldNum"`). If `NULL` (default), all shapes are included.
+#'   Non-placeholder shapes are excluded when this is set.
+#' @param exclude_ph_type `[character]`\cr Placeholder types to exclude. Applied after
+#'   `ph_type` filtering. Non-placeholder shapes are not affected by this filter.
 #' @param verbose `[integer]`\cr Level of console output (default `1`).\cr
 #'   `0` = silent, `1` = one-line summary, `2` = detailed per-shape breakdown.
 #' @param dry_run `[logical]`\cr If `TRUE`, no replacements are performed. The log is still
@@ -24,6 +29,7 @@
 #' @export
 #' @example inst/ext/examples/example-text-replace.R
 text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL, ...,
+                         ph_type = NULL, exclude_ph_type = NULL,
                          verbose = 1L, dry_run = FALSE) {
   if (!inherits(x, "rpptx")) {
     cli::cli_abort("{.arg x} must be an {.cls rpptx} object.", call = NULL)
@@ -49,6 +55,7 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
   for (i in seq_along(slide_idx)) {
     idx <- slide_idx[i]
     shapes <- pptx_shapes_on_slide(x, idx)
+    shapes <- filter_shapes_by_ph_type(shapes, ph_type, exclude_ph_type)
     for (si in seq_along(shapes)) {
       shape <- shapes[[si]]
       shape_name <- xml_shape_get_name(shape)
@@ -167,6 +174,25 @@ text_replace_expect <- function(x, pattern, n = NULL, min = NULL, max = NULL, sl
 
 # ____________----
 # INTERNAL HELPERS --------------------------------------------
+
+
+filter_shapes_by_ph_type <- function(shapes, ph_type = NULL, exclude_ph_type = NULL) {
+  if (is.null(ph_type) && is.null(exclude_ph_type)) {
+    return(shapes)
+  }
+  if (length(shapes) == 0L) {
+    return(shapes)
+  }
+  types <- vapply(shapes, xml_placeholder_type, character(1))
+  keep <- rep(TRUE, length(shapes))
+  if (!is.null(ph_type)) {
+    keep <- keep & (!is.na(types) & types %in% ph_type)
+  }
+  if (!is.null(exclude_ph_type)) {
+    keep <- keep & (is.na(types) | !types %in% exclude_ph_type)
+  }
+  shapes[keep]
+}
 
 
 xml_shape_get_name <- function(shape) {
