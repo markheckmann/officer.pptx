@@ -5,7 +5,7 @@ Version: 0.1.1.9017
 Author: Mark Heckmann <heckmann.mark@gmail.com>
 Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
 Description: Add-on functions to work with PPTX and the officer package.
-License: file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: 

@@ -7,3 +7,5 @@ TODO.md
 ^codecov\.yml$
 ^doc$
 ^Meta$
+^LICENSE\.md$
+^_pkgdown\.yml$
