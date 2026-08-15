@@ -1,0 +1,73 @@
+url: https://markheckmann.github.io/officer.pptx/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search, github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/markheckmann/officer.pptx
+
+reference:
+  - title: Text Replacement
+    desc: Find and replace text in slides while preserving formatting.
+    contents:
+      - text_replace
+      - text_replace_log
+      - text_replace_expect
+
+  - title: Images
+    desc: Insert and position images in slides.
+    contents:
+      - img
+      - ph_with.img
+      - image_insert
+      - read_image
+
+  - title: Slide Operations
+    desc: Create, clone, and preview slides.
+    contents:
+      - clone_slide
+      - slide_preview
+      - slide_preview_2
+      - slide_preview_3
+      - slide_to_png
+      - slide_show
+
+  - title: Shapes
+    desc: Work with shapes and placeholders.
+    contents:
+      - ph_visualize
+      - starts_with("shape")
+      - frame
+      - starts_with("frame_")
+      - as.character.frame
+
+  - title: Slide Properties
+    desc: Query slide dimensions.
+    contents:
+      - starts_with("slide-size")
+      - width
+
+  - title: Utilities
+    contents:
+      - pptx_read
+      - file_open
+      - starts_with("example")
+      - officer.pptx-package
+
+articles:
+  - title: User Guides
+    contents:
+      - text-replace
+      - img-function
+
+  - title: Developer
+    contents:
+      - dev
+      - dev_frame_class
+      - dev_img_class

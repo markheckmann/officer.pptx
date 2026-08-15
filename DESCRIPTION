@@ -38,3 +38,5 @@ Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: quarto
 Config/roxygen2/version: 8.1.0
+URL: https://markheckmann.github.io/officer.pptx/, https://github.com/markheckmann/officer.pptx
+BugReports: https://github.com/markheckmann/officer.pptx/issues
