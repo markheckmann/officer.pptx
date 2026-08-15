@@ -1,4 +1,3 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # {officer.pptx}
@@ -10,8 +9,12 @@
 coverage](https://codecov.io/gh/markheckmann/officer.pptx/branch/main/graph/badge.svg)](https://app.codecov.io/gh/markheckmann/officer.pptx?branch=main)
 <!-- badges: end -->
 
-The goal of `officer.pptx` is to extent pptx related features from the
-`officer` package and is complelety compatible with it.
+`officer.pptx` is an extension package for
+[`officer`](https://davidgohel.github.io/officer/) that adds features
+for working with PowerPoint presentations. New functionality is
+developed and tested here with the goal of eventually integrating it
+into `officer` itself. The package is fully compatible with `officer` and
+can be used as a drop-in addition.
 
 ## Installation
 
@@ -21,21 +24,4 @@ You can install the development version of `officer.pptx` from
 ``` r
 # install.packages("devtools")
 devtools::install_github("markheckmann/officer.pptx")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(officer.pptx)
-#> Registered S3 method overwritten by 'officer.pptx':
-#>   method      from   
-#>   print.rpptx officer
-#> 
-#> Attaching package: 'officer.pptx'
-#> The following object is masked from 'package:mh':
-#> 
-#>     file_open
-## basic example code
 ```
