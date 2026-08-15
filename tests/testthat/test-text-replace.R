@@ -45,10 +45,9 @@ test_that("text_replace dry_run does not modify content", {
 test_that("text_replace verbose prints output", {
   file_in <- test_file("testdata_01_replace")
   x <- read_pptx(file_in)
-  expect_message(
-    text_replace(x, "@" = ">>>", verbose = 1L),
-    "text_replace"
-  )
+  expect_snapshot(text_replace(x, "@" = ">>>", verbose = 1L))
+  x2 <- read_pptx(file_in)
+  expect_snapshot(text_replace(x2, "@" = ">>>", verbose = 2L))
 })
 
 
@@ -266,4 +265,22 @@ test_that("text_replace auto-sorts patterns longest first", {
   title_text <- xml2::xml_text(shapes[[1]])
   expect_true(grepl("DOUBLE", title_text, fixed = TRUE))
   expect_true(grepl("SINGLE", title_text, fixed = TRUE))
+})
+
+
+test_that("text_replace errors on invalid slide_idx", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  expect_error(text_replace(x, "{1}" = "A", slide_idx = 0, verbose = 0L), "invalid indices")
+  expect_error(text_replace(x, "{1}" = "A", slide_idx = 999, verbose = 0L), "invalid indices")
+})
+
+
+test_that("text_replace with no patterns returns early with empty log", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, verbose = 0L)
+  log <- text_replace_log(x)
+  expect_s3_class(log, "tbl_df")
+  expect_equal(nrow(log), 0L)
 })

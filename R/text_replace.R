@@ -39,6 +39,14 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
     cli::cli_abort("{.arg x} must be an {.cls rpptx} object.", call = NULL)
   }
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
+  n_slides <- x$slide$length()
+  invalid <- slide_idx[slide_idx < 1L | slide_idx > n_slides]
+  if (length(invalid) > 0L) {
+    cli::cli_abort(
+      "{.arg slide_idx} contains invalid indices: {.val {invalid}} (presentation has {n_slides} slide{?s}).",
+      call = NULL
+    )
+  }
 
   dots <- list(...)
   if (length(dots) > 0L && (is.null(names(dots)) || any(names(dots) == ""))) {
@@ -49,6 +57,16 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
   replacement <- c(replacement, dots_replacement)
   if (length(pattern) != length(replacement)) {
     cli::cli_abort("Length of {.arg pattern} and {.arg replacement} must match.", call = NULL)
+  }
+  if (length(pattern) == 0L) {
+    attr(x, "text_replace_log") <- dplyr::tibble(
+      slide_idx = integer(),
+      shape_name = character(),
+      pattern = character(),
+      replacement = character(),
+      count = integer()
+    )
+    return(x)
   }
 
   ord <- order(nchar(pattern), decreasing = TRUE)
@@ -129,8 +147,9 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
 #'
 #' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
 #' @return A tibble with columns `slide_idx`, `shape_name`, `pattern`, `replacement`, `count`,
-#'   or `NULL` if no log is available.
+#'   or `NULL` if [text_replace()] has not been called on `x`.
 #' @export
+#' @example inst/ext/examples/example-text-replace-log.R
 text_replace_log <- function(x) {
   attr(x, "text_replace_log")
 }
@@ -151,6 +170,7 @@ text_replace_log <- function(x) {
 #'   the total across all slides is checked.
 #' @return `x` invisibly (for piping).
 #' @export
+#' @example inst/ext/examples/example-text-replace-expect.R
 text_replace_expect <- function(x, pattern, n = NULL, min = NULL, max = NULL, slide_idx = NULL) {
   log <- text_replace_log(x)
   if (is.null(log)) {
@@ -285,7 +305,8 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
   df_runs <- dplyr::tibble(run_idx = seq_along(runs_text), text = runs_text)
   df <- df_runs |>
     dplyr::mutate(original = strsplit(text, "")) |>
-    tidyr::unnest(original)
+    tidyr::unnest(original) |>
+    dplyr::select(-text)
 
   chars_new <- strsplit(replacement, "") |> unlist()
   n_new <- length(chars_new)

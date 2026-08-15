@@ -3,6 +3,9 @@
 * `text_replace()` now auto-sorts patterns longest-first to prevent substring
   collisions, validates that all `...` args are named, and uses faster log
   accumulation internally.
+* `text_replace()` validates `slide_idx` bounds and returns early with an empty
+  log when no patterns are supplied.
+* `text_replace_log()` and `text_replace_expect()` gain roxygen examples.
 * `text_replace()` gains `verbose`, `dry_run` arguments and a replacement log.
   Use `text_replace_log()` to inspect what was replaced (slide, shape, pattern, count).
   Use `text_replace_expect()` to assert expected replacement counts, optionally per slide (#3).
