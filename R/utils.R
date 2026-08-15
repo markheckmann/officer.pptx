@@ -39,6 +39,24 @@ requireNamespaces <- function(pkgs, fail_if_missing = FALSE, quietly = TRUE) {
 `%nin%` <- Negate(`%in%`)
 
 
+# Base-R equivalents of stringr functions (fixed pattern only)
+
+str_count_fixed <- function(x, pattern) {
+  m <- gregexpr(pattern, x, fixed = TRUE)
+  vapply(m, function(mi) sum(mi > 0L), integer(1))
+}
+
+str_locate_all_fixed <- function(x, pattern) {
+  m <- gregexpr(pattern, x, fixed = TRUE)[[1]]
+  if (m[1] == -1L) {
+    return(matrix(integer(0), ncol = 2, dimnames = list(NULL, c("start", "end"))))
+  }
+  starts <- as.integer(m)
+  ends <- starts + attr(m, "match.length") - 1L
+  cbind(start = starts, end = ends)
+}
+
+
 
 # In OOXML, shape rotations are expressed in units of 1/60000th of a degree.
 # For example:

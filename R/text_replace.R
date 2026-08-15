@@ -36,7 +36,7 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
   }
   slide_idx <- slide_idx %||% seq_len(x$slide$length())
 
-  dots <- rlang::dots_list(...)
+  dots <- list(...)
   pattern <- c(pattern, names(dots))
   dots_replacement <- dots |> unlist() |> unname() |> as.character()
   replacement <- c(replacement, dots_replacement)
@@ -207,7 +207,7 @@ xml_shape_count_matches <- function(shape, pattern) {
   all_text <- xml_get_runs(shape) |>
     xml2::xml_text() |>
     paste0(collapse = "")
-  stringr::str_count(all_text, pattern = stringr::fixed(pattern))
+  str_count_fixed(all_text, pattern)
 }
 
 
@@ -252,7 +252,7 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
   text_old <- paste0(runs_text, collapse = "")
 
   # Locate all non-overlapping matches at once (avoids cascading replacements)
-  locs <- stringr::str_locate_all(text_old, pattern = stringr::fixed(pattern))[[1]]
+  locs <- str_locate_all_fixed(text_old, pattern)
   if (nrow(locs) == 0L) {
     return(invisible(NULL))
   }
