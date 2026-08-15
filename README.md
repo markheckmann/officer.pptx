@@ -22,6 +22,6 @@ You can install the development version of `officer.pptx` from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("markheckmann/officer.pptx")
+# install.packages("pak")
+pak::pak("markheckmann/officer.pptx")
 ```
