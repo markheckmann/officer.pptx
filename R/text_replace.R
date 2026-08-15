@@ -8,6 +8,10 @@
 #' For the formatting, only the first character of the matched pattern is relevant.
 #' The whole replacement will have this format.
 #'
+#' Patterns are matched as fixed strings (no regex). Since matching is substring-based,
+#' shorter patterns may match inside longer ones (e.g., `"[2]"` matches inside `"[[2]]"`).
+#' To avoid this, replace longer patterns first.
+#'
 #' @param x `[rpptx]`\cr An [officer] object. See [officer::read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
 #' @param replacement `[character]`\cr Vector with replacements.

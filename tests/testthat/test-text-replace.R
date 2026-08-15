@@ -117,7 +117,7 @@ test_that("text_replace with no matches returns empty log", {
 test_that("text_replace ph_type includes only matching placeholders", {
   file_in <- example_pptx("text_replace")
   x <- read_pptx(file_in)
-  x <- text_replace(x, "{1}" = "X", ph_type = "title", verbose = 0L)
+  x <- text_replace(x, "[1]" = "X", ph_type = "title", verbose = 0L)
   log <- text_replace_log(x)
   expect_true(nrow(log) > 0L)
   expect_true(all(log$shape_name == "Titel 3"))
@@ -127,7 +127,7 @@ test_that("text_replace ph_type includes only matching placeholders", {
 test_that("text_replace ph_type excludes non-placeholder shapes", {
   file_in <- example_pptx("text_replace")
   x <- read_pptx(file_in)
-  x <- text_replace(x, "{1}" = "X", ph_type = "title", verbose = 0L)
+  x <- text_replace(x, "[1]" = "X", ph_type = "title", verbose = 0L)
   log <- text_replace_log(x)
   expect_false(any(log$shape_name %in% c("Textplatzhalter 3", "Rechteck 5", "Rechteck 6")))
 })
@@ -136,7 +136,7 @@ test_that("text_replace ph_type excludes non-placeholder shapes", {
 test_that("text_replace exclude_ph_type removes matching placeholders", {
   file_in <- example_pptx("text_replace")
   x <- read_pptx(file_in)
-  x <- text_replace(x, "{1}" = "X", exclude_ph_type = "title", verbose = 0L)
+  x <- text_replace(x, "[1]" = "X", exclude_ph_type = "title", verbose = 0L)
   log <- text_replace_log(x)
   expect_false(any(log$shape_name == "Titel 3"))
   expect_true(nrow(log) > 0L)
@@ -146,7 +146,46 @@ test_that("text_replace exclude_ph_type removes matching placeholders", {
 test_that("text_replace exclude_ph_type keeps non-placeholder shapes", {
   file_in <- example_pptx("text_replace")
   x <- read_pptx(file_in)
-  x <- text_replace(x, "@" = "X", exclude_ph_type = "title", verbose = 0L)
+  x <- text_replace(x, "[]" = "X", exclude_ph_type = "title", verbose = 0L)
   log <- text_replace_log(x)
   expect_true(any(log$shape_name == "Rechteck 6"))
+})
+
+
+test_that("text_replace works with bracket placeholders", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "[2]" = "A", slide_idx = 2, verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(sum(log$count) >= 1L)
+
+  shapes <- pptx_shapes_on_slide(x, 2)
+  texts <- vapply(shapes, xml2::xml_text, character(1))
+  expect_false(any(grepl("[2]", texts, fixed = TRUE)))
+})
+
+
+test_that("text_replace works with empty bracket placeholder", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- text_replace(x, "[]" = "EMPTY", slide_idx = 2, verbose = 0L)
+  log <- text_replace_log(x)
+  expect_true(sum(log$count) >= 1L)
+
+  shapes <- pptx_shapes_on_slide(x, 2)
+  texts <- vapply(shapes, xml2::xml_text, character(1))
+  expect_false(any(grepl("[]", texts, fixed = TRUE)))
+})
+
+
+test_that("text_replace longer pattern first avoids substring collision", {
+  file_in <- test_file("testdata_01_replace")
+  x <- read_pptx(file_in)
+  x <- x |>
+    text_replace("[[2]]" = "DOUBLE", slide_idx = 2, verbose = 0L) |>
+    text_replace("[2]" = "SINGLE", slide_idx = 2, verbose = 0L)
+  shapes <- pptx_shapes_on_slide(x, 2)
+  title_text <- xml2::xml_text(shapes[[1]])
+  expect_true(grepl("DOUBLE", title_text, fixed = TRUE))
+  expect_true(grepl("SINGLE", title_text, fixed = TRUE))
 })

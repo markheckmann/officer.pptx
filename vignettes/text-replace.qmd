@@ -166,3 +166,18 @@ read_pptx("template.pptx") |>
 ```
 
 This ensures the pipeline fails early if a placeholder is missing or duplicated unexpectedly.
+
+## Pattern Matching Details
+
+Patterns are matched as fixed strings (no regex). This means shorter patterns can match
+inside longer ones. For example, `"[2]"` also matches inside `"[[2]]"` since it is a
+substring.
+
+To avoid unintended substring matches, replace longer patterns first:
+
+```{r}
+#| eval: false
+x |>
+  text_replace("[[name]]" = "Mark") |>
+  text_replace("[name]" = "Mark")
+```
