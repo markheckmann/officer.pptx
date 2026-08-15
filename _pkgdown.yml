@@ -65,9 +65,3 @@ articles:
     contents:
       - text-replace
       - img-function
-
-  - title: Developer
-    contents:
-      - dev
-      - dev_frame_class
-      - dev_img_class
