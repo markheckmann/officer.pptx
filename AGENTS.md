@@ -40,6 +40,8 @@ project-specific conventions and user preferences for future coding agents.
   is ignored by git and should not be edited directly.
 - For user-facing console output, prefer the `cli` package with colored output
   and structured elements over plain `print()`/`cat()` output.
+- For long-running user-facing functions, provide intermediate progress or
+  status messages with the `cli` package so users know what is happening.
 - Use `call = NULL` in `cli::cli_abort()` calls for cleaner error messages.
 
 ## Dependencies
@@ -155,7 +157,28 @@ covr::percent_coverage(cov)
 ## Local Development Folders
 
 - `dev_local/` and `dev_local*/` are ignored and used for local experiments.
+- Dev vignettes live in `dev_local/vignettes/` and are not built by pkgdown.
 - Do not commit contents from these folders.
+
+## GitHub / CI
+
+- The remote is hosted on GitHub at https://github.com/markheckmann/officer.pptx.
+- Use `gh` for issues, PRs, and CI interaction.
+- CI workflows: R-CMD-check (multi-platform), test-coverage (Codecov), pkgdown
+  (GitHub Pages).
+- pkgdown requires quarto; dev vignettes are excluded from the site build.
+- Snapshot tests are skipped on CRAN.
+
+## Project-Specific Behavior To Preserve
+
+- `text_replace()` auto-sorts patterns longest-first to prevent substring
+  collisions.
+- The replacement log is stored as an attribute on the rpptx object, not a side
+  effect.
+- `xml_shape_text_replace()` processes matches in reverse order to keep row
+  indices stable.
+- `img()` auto-detects image dimensions for supported formats (jpeg, png, gif,
+  tiff, svg, emf, wmf, pdf).
 
 ## Commit Message Style
 
