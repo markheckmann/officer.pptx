@@ -34,6 +34,32 @@ Key features:
 - **Dry-run mode**: Preview replacements without modifying the file.
 - **Expectations**: Assert that patterns were replaced the expected number of times.
 
+## Before and After
+
+Here is what `text_replace()` does. The template slide (slide 1) contains placeholders `{1}` and `@`
+with different formatting (bold, italic, colored):
+
+```{r}
+#| echo: false
+#| out.width: "100%"
+knitr::include_graphics("text-replace-before.png")
+```
+
+After replacement with the following code, each placeholder is filled with the new text while
+preserving the formatting of the first character of the matched pattern:
+
+```{r}
+#| eval: false
+x <- read_pptx(example_pptx("text_replace"))
+x <- text_replace(x, "{1}" = "Hello World", "@" = "replaced!", slide_idx = 1)
+```
+
+```{r}
+#| echo: false
+#| out.width: "100%"
+knitr::include_graphics("text-replace-after.png")
+```
+
 ## Basic Usage
 
 Pass pattern/replacement pairs as named arguments:
@@ -41,14 +67,14 @@ Pass pattern/replacement pairs as named arguments:
 ```{r}
 file_in <- example_pptx("text_replace")
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", "{1}" = ":)")
+x <- text_replace(x, "{1}" = ">>>", "@" = ":)")
 ```
 
 Alternatively, use the `pattern` and `replacement` vectors:
  
 ```{r}
 x <- read_pptx(file_in)
-x <- text_replace(x, pattern = c("@", "{1}"), replacement = c(">>>", ":)"))
+x <- text_replace(x, pattern = c("{1}", "@"), replacement = c(">>>", ":)"))
 ```
 
 Both styles can be combined.
@@ -59,7 +85,7 @@ Use `slide_idx` to restrict replacements to selected slides:
 
 ```{r}
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", slide_idx = 1)
+x <- text_replace(x, "{1}" = ">>>", slide_idx = 1)
 ```
 
 ## The Replacement Log
@@ -68,7 +94,7 @@ After calling `text_replace()`, a log is attached to the object. Retrieve it wit
 
 ```{r}
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", "{1}" = ":)", verbose = 0)
+x <- text_replace(x, "{1}" = ">>>", "@" = ":)", verbose = 0)
 text_replace_log(x)
 ```
 
@@ -88,7 +114,7 @@ Set `dry_run = TRUE` to see what *would* be replaced without modifying the prese
 
 ```{r}
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", dry_run = TRUE)
+x <- text_replace(x, "{1}" = ">>>", dry_run = TRUE)
 text_replace_log(x)
 ```
 
@@ -102,11 +128,11 @@ By default, `text_replace()` prints a one-line summary (`verbose = 1`). Set `ver
 x <- read_pptx(file_in)
 
 # silent
-x <- text_replace(x, "@" = ">>>", verbose = 0)
+x <- text_replace(x, "{1}" = ">>>", verbose = 0)
 
 # detailed per-shape output
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", verbose = 2)
+x <- text_replace(x, "{1}" = ">>>", verbose = 2)
 ```
 
 ## Asserting Expectations
@@ -116,13 +142,13 @@ In production pipelines you often want to verify that all placeholders were actu
 ```{r}
 #| error: true
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", "{1}" = ":)", verbose = 0)
+x <- text_replace(x, "{1}" = ">>>", "@" = ":)", verbose = 0)
 
 # passes silently
-x |> text_replace_expect("@", min = 1)
+x |> text_replace_expect("{1}", min = 1)
 
 # fails because the pattern was replaced more than 0 times
-x |> text_replace_expect("@", n = 0)
+x |> text_replace_expect("{1}", n = 0)
 ```
 
 ### Available Checks
@@ -141,10 +167,10 @@ Restrict the check to specific slides with `slide_idx`:
 
 ```{r}
 x <- read_pptx(file_in)
-x <- text_replace(x, "@" = ">>>", verbose = 0)
+x <- text_replace(x, "{1}" = ">>>", verbose = 0)
 
 # only check slide 1
-x |> text_replace_expect("@", min = 1, slide_idx = 1)
+x |> text_replace_expect("{1}", min = 1, slide_idx = 1)
 ```
 
 ## Pipeline Example
