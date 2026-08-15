@@ -7,4 +7,9 @@
 dev_local*
 inst/doc
 /doc/
+/docs/
 /Meta/
+/pkgdown/
+
+/.quarto/
+**/*.quarto_ipynb

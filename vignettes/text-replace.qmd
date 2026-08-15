@@ -39,11 +39,7 @@ Key features:
 Here is what `text_replace()` does. The template slide (slide 1) contains placeholders `{1}` and `@`
 with different formatting (bold, italic, colored):
 
-```{r}
-#| echo: false
-#| out.width: "100%"
-knitr::include_graphics("text-replace-before.png")
-```
+![](text-replace-before.png){width=100%}
 
 After replacement with the following code, each placeholder is filled with the new text while
 preserving the formatting of the first character of the matched pattern:
@@ -54,11 +50,7 @@ x <- read_pptx(example_pptx("text_replace"))
 x <- text_replace(x, "{1}" = "Hello World", "@" = "replaced!", slide_idx = 1)
 ```
 
-```{r}
-#| echo: false
-#| out.width: "100%"
-knitr::include_graphics("text-replace-after.png")
-```
+![](text-replace-after.png){width=100%}
 
 ## Basic Usage
 
