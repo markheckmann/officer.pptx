@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# {officer.pptx}
+# {officer.pptx} <img src="man/figures/logo.png" align="right" height="139" alt="officer.pptx logo" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/markheckmann/officer.pptx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/markheckmann/officer.pptx/actions/workflows/R-CMD-check.yaml)

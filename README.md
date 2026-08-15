@@ -1,6 +1,6 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# {officer.pptx}
+# {officer.pptx} <img src="man/figures/logo.png" align="right" height="139" alt="officer.pptx logo" />
 
 <!-- badges: start -->
 
