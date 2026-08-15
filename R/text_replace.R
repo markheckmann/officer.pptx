@@ -70,9 +70,7 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
             count = n
           ))
           if (!dry_run) {
-            for (j in seq_len(n)) {
-              xml_shape_text_replace(shape, pattern[pi], replacement[pi])
-            }
+            xml_shape_text_replace(shape, pattern[pi], replacement[pi])
           }
         }
       }
@@ -176,6 +174,9 @@ text_replace_expect <- function(x, pattern, n = NULL, min = NULL, max = NULL, sl
 # INTERNAL HELPERS --------------------------------------------
 
 
+# Filter shapes by placeholder type.
+# ph_type: include only placeholders of these types (non-placeholders excluded)
+# exclude_ph_type: exclude placeholders of these types (non-placeholders kept)
 filter_shapes_by_ph_type <- function(shapes, ph_type = NULL, exclude_ph_type = NULL) {
   if (is.null(ph_type) && is.null(exclude_ph_type)) {
     return(shapes)
@@ -210,6 +211,9 @@ xml_shape_count_matches <- function(shape, pattern) {
 }
 
 
+# Repeat a single row `times` at its position in a data frame.
+# Used to "expand" the character data frame when the replacement is longer
+# than a single character.
 df_row_repeat <- function(df, idx = NULL, times = 1) {
   if (is.null(idx) || all(is.na(idx))) {
     return(df)
@@ -231,6 +235,14 @@ df_row_repeat <- function(df, idx = NULL, times = 1) {
 }
 
 
+# Replace all occurrences of a fixed pattern in a single shape's text.
+#
+# Strategy: Each run (<a:r>) holds a text fragment. We explode all run texts
+# into a one-row-per-character data frame, find match positions on the
+# concatenated string, then splice replacement characters in place. Processing
+# matches last-to-first keeps earlier row indices stable. Finally we collapse
+# characters back per run and write the new text to the XML nodes.
+# The replacement inherits the formatting of the first matched character's run.
 xml_shape_text_replace <- function(shape, pattern, replacement) {
   text <- original <- run_idx <- NULL
   runs <- xml_get_runs(shape)
@@ -238,42 +250,60 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
     xml2::xml_text() |>
     stats::setNames(paste0("r_", seq_along(runs)))
   text_old <- paste0(runs_text, collapse = "")
-  pattern_loc <- stringr::str_locate(text_old, pattern = stringr::fixed(pattern)) |>
-    as.list() |>
-    stats::setNames(c("from", "to"))
-  if (all(is.na(pattern_loc))) {
+
+  # Locate all non-overlapping matches at once (avoids cascading replacements)
+  locs <- stringr::str_locate_all(text_old, pattern = stringr::fixed(pattern))[[1]]
+  if (nrow(locs) == 0L) {
     return(invisible(NULL))
   }
+
+  # Explode run texts into one row per character, keeping track of source run
 
   df_runs <- dplyr::tibble(run_idx = seq_along(runs_text), text = runs_text)
   df <- df_runs |>
     dplyr::mutate(original = strsplit(text, "")) |>
     tidyr::unnest(original)
+
   chars_new <- strsplit(replacement, "") |> unlist()
   n_new <- length(chars_new)
-  if (replacement == "") {
-    chars_new <- ""
-    n_new <- 1
+  is_empty_replacement <- (replacement == "")
+  if (is_empty_replacement) {
+    chars_new <- character(0)
+    n_new <- 0L
   }
 
-  ii_pattern <- do.call(seq, pattern_loc)
-  i_first <- ii_pattern |> utils::head(1)
-  ii_remove <- ii_pattern |> utils::tail(-1)
-  .df <- df
-  if (length(ii_remove) > 0) {
-    .df <- .df[-ii_remove, ]
+  # Process matches in reverse order so row indices of earlier matches stay valid
+  for (m in rev(seq_len(nrow(locs)))) {
+    from <- locs[m, "start"]
+    to <- locs[m, "end"]
+    ii_pattern <- seq(from, to)
+    i_first <- ii_pattern[1]
+    ii_remove <- ii_pattern[-1]
+
+    # Remove all matched characters except the first (which anchors formatting)
+    if (length(ii_remove) > 0) {
+      df <- df[-ii_remove, ]
+    }
+
+    if (is_empty_replacement) {
+      # Deletion: remove the remaining anchor character too
+      df <- df[-i_first, ]
+    } else {
+      # Insert replacement chars at the anchor position (inherits run formatting)
+      df <- df_row_repeat(df, idx = i_first, times = n_new)
+      ii_replace <- seq(i_first, i_first + n_new - 1)
+      df$original[ii_replace] <- chars_new
+    }
   }
-  .df <- df_row_repeat(.df, idx = i_first, times = n_new)
-  ii_replace <- seq(i_first, i_first + n_new - 1)
-  .df$replacement <- .df$original
-  .df$replacement[ii_replace] <- chars_new
-  .df_runs <- .df |> dplyr::summarise(
+
+  # Collapse characters back to per-run strings and write to XML
+  .df_runs <- df |> dplyr::summarise(
     .by = run_idx,
-    dplyr::across(c(original, replacement), glue::glue_collapse)
+    replacement = paste0(original, collapse = "")
   )
+  # Runs that lost all characters get NA after the join; replace with ""
   df_all <- df_runs |>
     dplyr::left_join(.df_runs, by = "run_idx") |>
-    dplyr::mutate(replacement = tidyr::replace_na(replacement, "")) |>
-    dplyr::select(-original)
+    dplyr::mutate(replacement = tidyr::replace_na(replacement, ""))
   xml2::xml_text(runs) <- df_all$replacement
 }
