@@ -25,6 +25,16 @@ knitr::opts_chunk$set(
 # Check if doconv is available for slide previews
 has_doconv <- requireNamespace("doconv", quietly = TRUE) &&
   nzchar(Sys.which("soffice"))
+
+render_miniature <- function(...) {
+  if (!has_doconv) {
+    return(invisible(NULL))
+  }
+  tryCatch(
+    doconv::to_miniature(...),
+    error = function(e) invisible(NULL)
+  )
+}
 ```
 
 ## Introduction
@@ -100,9 +110,7 @@ print(x, file_pptx)
 #| fig-width: 8
 #| fig-height: 4.5
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx)
-}
+render_miniature(file_pptx)
 ```
 
 Compare this to the traditional approach with `external_img()` where you would need to specify dimensions manually or deal with improper sizing.
@@ -168,9 +176,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 3
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1, 1))
 ```
 
 ### The `fit` Parameter
@@ -212,9 +218,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 5
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 2, 2))
-}
+render_miniature(file_pptx, row = c(1, 1, 2, 2))
 ```
 
 ## Positioning and Alignment
@@ -255,9 +259,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 3
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1, 1))
 ```
 
 ### Offsets with `x_offset` and `y_offset`
@@ -285,9 +287,7 @@ print(x, file_pptx)
 #| fig-width: 8
 #| fig-height: 4.5
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx)
-}
+render_miniature(file_pptx)
 ```
 
 The `offset_mode` parameter controls how offsets are interpreted:
@@ -322,9 +322,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 3
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1, 1))
 ```
 
 ### Background Color
@@ -367,9 +365,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 3
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1, 1))
 ```
 
 ### Border / Line
@@ -408,9 +404,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 3
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1, 1))
 ```
 
 ## Multiple Images on One Slide
@@ -439,9 +433,7 @@ print(x, file_pptx)
 #| fig-width: 8
 #| fig-height: 4.5
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx)
-}
+render_miniature(file_pptx)
 ```
 
 ## Using `img()` with `ph_with()`
@@ -478,9 +470,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 4.5
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1))
-}
+render_miniature(file_pptx, row = c(1, 1))
 ```
 
 ## Manual Dimension Override
@@ -574,9 +564,7 @@ print(x, file_pptx)
 #| fig-width: 10
 #| fig-height: 6
 
-if (has_doconv) {
-  doconv::to_miniature(file_pptx, row = c(1, 1, 1, 2, 2))
-}
+render_miniature(file_pptx, row = c(1, 1, 1, 2, 2))
 ```
 
 ## Tips and Best Practices

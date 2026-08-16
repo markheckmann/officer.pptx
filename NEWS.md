@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* The `img()` vignette now treats slide thumbnail generation as optional during
+  pkgdown builds, so site generation does not fail if `doconv` or LibreOffice
+  cannot convert a presentation on CI.
 * Examples and vignettes that require LibreOffice now skip the conversion step
   when `soffice` is unavailable, so R CMD check can run on standard CI runners.
 * `text_replace()` now auto-sorts patterns longest-first to prevent substring
