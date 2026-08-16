@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
 
 `text_replace()` finds and replaces text patterns in PowerPoint slides while preserving character formatting. It is designed for template workflows where placeholders like `@name` or `{date}` are filled in programmatically.
 
+The function was inspired by the Python project [python-pptx-text-replacer](https://github.com/fschaeck/python-pptx-text-replacer).
+
 Key features:
 
 - **Format preservation**: The replacement inherits the formatting of the first matched character.

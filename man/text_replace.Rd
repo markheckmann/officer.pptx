@@ -17,7 +17,7 @@ text_replace(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \link[officer:rpptx]{officer::rpptx} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to replace. Regex is not interpreted.}
 
@@ -47,20 +47,21 @@ The (modified) rpptx object with an attribute \code{"text_replace_log"} containi
 tibble of replacements performed. Use \code{\link[=text_replace_log]{text_replace_log()}} to access it.
 }
 \description{
-All occurences of \code{pattern} on the selected slides are replaced with the text of \code{replacement}.
+All occurrences of \code{pattern} on the selected slides are replaced with the text of \code{replacement}.
 For the formatting, only the first character of the matched pattern is relevant.
 The whole replacement will have this format.
+
+\code{text_replace()} was inspired by the Python project
+\href{https://github.com/fschaeck/python-pptx-text-replacer}{python-pptx-text-replacer}.
 }
 \examples{
-# Some example file
-
 file_in <- example_pptx("text_replace")
 file_out <- tempfile(fileext = ".pptx")
 
 # file_open(file_in)
 
-x <- pptx_read(file_in)
-x <- text_replace(x, "@" = ">>>", "{1}" = ":)")
+x <- read_pptx(file_in)
+x <- text_replace(x, "{1}" = ">>>", "@" = ":)")
 print(x, target = file_out)
 
 # file_open(file_out)

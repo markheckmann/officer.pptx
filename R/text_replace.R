@@ -12,6 +12,9 @@
 #' shorter patterns may match inside longer ones (e.g., `"[2]"` matches inside `"[[2]]"`).
 #' Patterns are automatically sorted longest-first within each call to avoid such collisions.
 #'
+#' `text_replace()` was inspired by the Python project
+#' [python-pptx-text-replacer](https://github.com/fschaeck/python-pptx-text-replacer).
+#'
 #' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
 #' @param replacement `[character]`\cr Vector with replacements.
