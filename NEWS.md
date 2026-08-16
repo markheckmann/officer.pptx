@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* The `img()` vignette now uses committed static thumbnails so the pkgdown site
+  always shows images and no longer depends on live LibreOffice conversion for
+  those figures.
 * The `img()` vignette now treats slide thumbnail generation as optional during
   pkgdown builds, so site generation does not fail if `doconv` or LibreOffice
   cannot convert a presentation on CI.
