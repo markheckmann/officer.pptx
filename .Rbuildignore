@@ -6,6 +6,12 @@ TODO.md
 ^\.github$
 ^codecov\.yml$
 ^doc$
+^docs$
 ^Meta$
+^pkgdown$
 ^LICENSE\.md$
 ^_pkgdown\.yml$
+^AGENTS\.md$
+^JOURNAL\.md$
+^\.quarto$
+^vignettes/\.quarto$

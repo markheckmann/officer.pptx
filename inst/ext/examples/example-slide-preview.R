@@ -7,4 +7,6 @@ x <- add_slide(x,
   dt = as.character(Sys.Date()),
   sldNum = 1
 )
-slide_preview(x)
+if (nzchar(Sys.which("soffice"))) {
+  slide_preview(x)
+}

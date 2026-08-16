@@ -1,5 +1,7 @@
 # officer.pptx 0.1.1
 
+* Examples and vignettes that require LibreOffice now skip the conversion step
+  when `soffice` is unavailable, so R CMD check can run on standard CI runners.
 * `text_replace()` now auto-sorts patterns longest-first to prevent substring
   collisions, validates that all `...` args are named, and uses faster log
   accumulation internally.

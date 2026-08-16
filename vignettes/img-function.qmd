@@ -24,8 +24,7 @@ knitr::opts_chunk$set(
 
 # Check if doconv is available for slide previews
 has_doconv <- requireNamespace("doconv", quietly = TRUE) &&
-  requireNamespace("locatexec", quietly = TRUE) &&
-  locatexec::exec_available("libreoffice", error = FALSE)
+  nzchar(Sys.which("soffice"))
 ```
 
 ## Introduction

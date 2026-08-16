@@ -53,7 +53,10 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
     cli::cli_abort("All {.arg ...} arguments must be named (pattern = replacement).", call = NULL)
   }
   pattern <- c(pattern, names(dots))
-  dots_replacement <- dots |> unlist() |> unname() |> as.character()
+  dots_replacement <- dots |>
+    unlist() |>
+    unname() |>
+    as.character()
   replacement <- c(replacement, dots_replacement)
   if (length(pattern) != length(replacement)) {
     cli::cli_abort("Length of {.arg pattern} and {.arg replacement} must match.", call = NULL)
@@ -175,7 +178,8 @@ text_replace_expect <- function(x, pattern, n = NULL, min = NULL, max = NULL, sl
   log <- text_replace_log(x)
   if (is.null(log)) {
     cli::cli_abort("No text replacement log found on {.arg x}. Run {.fn text_replace} first.",
-                   call = NULL)
+      call = NULL
+    )
   }
   if (!is.null(n) && (!is.null(min) || !is.null(max))) {
     cli::cli_abort("{.arg n} cannot be used together with {.arg min}/{.arg max}.", call = NULL)
@@ -240,7 +244,9 @@ filter_shapes_by_ph_type <- function(shapes, ph_type = NULL, exclude_ph_type = N
 
 xml_shape_get_name <- function(shape) {
   nvpr <- shape |> xml2::xml_find_first(".//p:cNvPr")
-  if (is.na(nvpr)) return(NA_character_)
+  if (is.na(nvpr)) {
+    return(NA_character_)
+  }
   xml2::xml_attr(nvpr, "name")
 }
 
@@ -288,7 +294,9 @@ df_row_repeat <- function(df, idx = NULL, times = 1) {
 xml_shape_text_replace <- function(shape, pattern, replacement) {
   original <- run_idx <- NULL
   runs <- xml_get_runs(shape)
-  if (length(runs) == 0L) return(invisible(NULL))
+  if (length(runs) == 0L) {
+    return(invisible(NULL))
+  }
   runs_text <- runs |>
     xml2::xml_text() |>
     stats::setNames(paste0("r_", seq_along(runs)))
@@ -303,10 +311,10 @@ xml_shape_text_replace <- function(shape, pattern, replacement) {
   # Explode run texts into one row per character, keeping track of source run
 
   df_runs <- dplyr::tibble(run_idx = seq_along(runs_text), text = runs_text)
+  df_runs$original <- strsplit(df_runs$text, "")
   df <- df_runs |>
-    dplyr::mutate(original = strsplit(text, "")) |>
-    tidyr::unnest(original) |>
-    dplyr::select(-text)
+    tidyr::unnest(original)
+  df$text <- NULL
 
   chars_new <- strsplit(replacement, "") |> unlist()
   n_new <- length(chars_new)
