@@ -92,6 +92,7 @@ file_png <- tempfile(fileext = ".png")
 png(file_png, width = 500, height = 400)
 plot(1:10, col = "steelblue", pch = 16, cex = 2, 
      xlab = "X", ylab = "Y", main = "Sample Plot")
+box("figure", col = "gray60", lwd = 3)
 dev.off()
 
 # Insert into a slide - that's it!
@@ -521,6 +522,7 @@ plot(mtcars$mpg, mtcars$hp,
      col = "steelblue", pch = 19, cex = 1.5,
      xlab = "MPG", ylab = "Horsepower",
      main = "Motor Trend Car Data")
+box("figure", col = "gray60", lwd = 3)
 dev.off()
 
 # Build presentation
