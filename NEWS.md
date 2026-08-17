@@ -1,5 +1,18 @@
 # officer.pptx 0.1.1
 
+* `shape_add()` and `shape_update()` now write replacement text into DrawingML
+  `<a:t>` nodes so text inside created or updated shapes is rendered by
+  PowerPoint/LibreOffice.
+* `shape_update()` now marks changed text runs as dirty so PowerPoint/LibreOffice
+  renderers refresh the visible text in updated template shapes.
+* The shape-selection vignette examples now use the packaged `shapes.pptx`
+  template instead of constructing example slides from scratch. The thumbnail
+  regeneration script is tracked alongside the vignette thumbnail assets.
+* `shape_update()` now adds rectangular geometry before applying fill or line
+  styling to placeholder text boxes that do not have direct geometry.
+* The shape-selection vignette is now structured as a more user-friendly guide
+  with a quick workflow, clearer matching examples, grey-bordered thumbnails,
+  and a less technical title.
 * The shape-selection vignette now calls out the experimental status of the
   `shape_*()` API.
 * `shape_*()` function references now show an experimental lifecycle badge.

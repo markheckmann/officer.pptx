@@ -364,11 +364,37 @@ xml_shape_set_text <- function(node, text = NULL) {
     return(invisible(node))
   }
   runs <- xml_get_runs(node)
-  xml2::xml_text(runs[[1]]) <- text
+  text_node <- xml_shape_run_text_node(runs[[1]])
+  xml2::xml_text(text_node) <- text
   if (length(runs) > 1L) {
-    xml2::xml_text(runs[-1]) <- ""
+    for (run in runs[-1]) {
+      text_node <- xml_shape_run_text_node(run)
+      xml2::xml_text(text_node) <- ""
+    }
   }
+  xml_shape_mark_text_dirty(runs)
   invisible(node)
+}
+
+
+xml_shape_run_text_node <- function(run) {
+  text_node <- xml2::xml_child(run, "a:t")
+  if (!is_xml_missing(text_node)) {
+    return(text_node)
+  }
+
+  text_node <- shape_xml_fragment("<a:t/>")
+  xml_shape_add_visual_child(run, text_node, after = "rPr")
+  xml2::xml_child(run, "a:t")
+}
+
+
+xml_shape_mark_text_dirty <- function(runs) {
+  r_pr <- xml2::xml_find_all(runs, "a:rPr")
+  if (length(r_pr) > 0L) {
+    xml2::xml_attr(r_pr, "dirty") <- "1"
+  }
+  invisible(runs)
 }
 
 
@@ -377,6 +403,7 @@ xml_shape_set_background <- function(node, background = NULL) {
     return(invisible(node))
   }
   sp_pr <- xml_shape_sp_pr(node)
+  xml_shape_ensure_geometry(sp_pr)
   xml_shape_remove_fill(sp_pr)
   fill <- if (identical(background, "transparent")) {
     shape_xml_fragment("<a:noFill/>")
@@ -393,6 +420,7 @@ xml_shape_set_line <- function(node, line = NULL) {
     return(invisible(node))
   }
   sp_pr <- xml_shape_sp_pr(node)
+  xml_shape_ensure_geometry(sp_pr)
   xml_shape_remove_line(sp_pr)
   line_xml <- shape_xml_fragment(officer::to_pml(line))
   xml_shape_add_visual_child(
@@ -401,6 +429,19 @@ xml_shape_set_line <- function(node, line = NULL) {
     after = c("xfrm", "prstGeom", "custGeom", "noFill", "solidFill", "gradFill", "blipFill", "pattFill", "grpFill")
   )
   invisible(node)
+}
+
+
+xml_shape_ensure_geometry <- function(sp_pr) {
+  geom <- xml2::xml_child(sp_pr, "a:prstGeom")
+  custom_geom <- xml2::xml_child(sp_pr, "a:custGeom")
+  if (!is_xml_missing(geom) || !is_xml_missing(custom_geom)) {
+    return(invisible(sp_pr))
+  }
+
+  geom <- shape_xml_fragment('<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>')
+  xml_shape_add_visual_child(sp_pr, geom, after = "xfrm")
+  invisible(sp_pr)
 }
 
 

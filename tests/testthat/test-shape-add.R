@@ -43,6 +43,8 @@ test_that("shape_add creates ordinary non-placeholder shapes", {
   expect_equal(added$rotation, 10)
   expect_equal(added$description, "Status description")
   expect_true(added$hidden)
+  expect_equal(xml2::xml_text(xml2::xml_find_first(node, ".//a:t")), "Status")
+  expect_equal(xml2::xml_text(node), "Status")
   expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:prstGeom"), "prst"), "roundRect")
   expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:solidFill/a:srgbClr"), "val"), "E6F4EA")
   expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:ln/a:solidFill/a:srgbClr"), "val"), "408335")

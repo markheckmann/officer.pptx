@@ -162,6 +162,53 @@ test_that("shape_update handles placeholders as an additional case", {
 })
 
 
+test_that("shape_update adds geometry for placeholder text boxes before styling", {
+  x <- read_pptx()
+  x <- add_slide(x, layout = "Blank")
+  x <- ph_with(
+    x,
+    "{image_1}",
+    location = ph_location(
+      left = 1, top = 1, width = 3, height = 1.5,
+      newlabel = "Image marker"
+    )
+  )
+
+  x <- x |>
+    shape_select(text = "{image_1}", match = "exact") |>
+    shape_update(
+      text = "Image placeholder",
+      background = "#26F4EA",
+      line = sp_line(color = "#408335", lwd = 1.5),
+      name = "Image placeholder marker"
+    )
+
+  updated <- shape_select(x, name = "Image placeholder marker", match = "exact")
+  node <- updated$node[[1]]
+
+  expect_equal(updated$text, "Image placeholder")
+  expect_equal(xml2::xml_text(xml2::xml_find_first(node, ".//a:t")), "Image placeholder")
+  expect_equal(xml2::xml_text(node), "Image placeholder")
+  expect_true(all(xml2::xml_attr(xml2::xml_find_all(node, ".//a:rPr"), "dirty") == "1"))
+  expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:prstGeom"), "prst"), "rect")
+  expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:solidFill/a:srgbClr"), "val"), "26F4EA")
+  expect_equal(xml2::xml_attr(xml2::xml_find_first(node, "p:spPr/a:ln/a:solidFill/a:srgbClr"), "val"), "408335")
+})
+
+
+test_that("shape_update marks changed template text as dirty for rendering", {
+  x <- read_pptx(test_path("..", "..", "inst", "ext", "pptx", "shapes.pptx"))
+  sel <- shape_select(x, text = "{tag_1}", match = "exact")
+
+  expect_equal(xml2::xml_attr(xml2::xml_find_all(sel$node[[1]], ".//a:rPr"), "dirty"), "0")
+
+  x <- shape_update(x, sel, text = "Updated")
+  updated <- shape_select(x, text = "Updated", match = "exact")
+
+  expect_equal(xml2::xml_attr(xml2::xml_find_all(updated$node[[1]], ".//a:rPr"), "dirty"), "1")
+})
+
+
 test_that("shape_update updates connector geometry, line, and metadata", {
   x <- shape_update_deck()
   sel <- shape_select(x, name = "Free connector", match = "exact")
