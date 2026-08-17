@@ -158,7 +158,7 @@ pptx_slide_get_visible <- function(x, slide_idx) {
 
 
 xml_slide_top_level_shapes <- function(slide) {
-  sp_tree <- xml2::xml_child(slide, "p:cSld/p:spTree")
+  sp_tree <- xml_slide_shape_tree(slide)
   children <- xml2::xml_children(sp_tree)
   children[xml2::xml_name(children) %in% shape_xml_names()]
 }

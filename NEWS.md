@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* `shape_add()` creates regular non-placeholder PowerPoint shapes with direct
+  coordinates, vectorized styling, preset geometry, and immediate compatibility
+  with `shape_select()` and `shape_update()` (#16).
 * `shape_update()` modifies shapes returned by `shape_select()`, including
   ordinary non-placeholder shapes, with support for text, solid background,
   line, geometry, Selection Pane name, alt text description, and visibility (#15).

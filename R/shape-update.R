@@ -284,12 +284,15 @@ shape_recycle_line <- function(x, n) {
 }
 
 
-shape_recycle_num <- function(x, n, arg, positive = FALSE) {
+shape_recycle_num <- function(x, n, arg, positive = FALSE, finite = FALSE) {
   if (is.null(x)) {
     return(list())
   }
   if (!is.numeric(x) || anyNA(x)) {
     cli::cli_abort("{.arg {arg}} must be a numeric vector without missing values.", call = NULL)
+  }
+  if (finite && any(!is.finite(x))) {
+    cli::cli_abort("{.arg {arg}} must contain finite values.", call = NULL)
   }
   if (positive && any(x <= 0)) {
     cli::cli_abort("{.arg {arg}} must contain positive values.", call = NULL)

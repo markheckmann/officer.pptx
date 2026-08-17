@@ -75,13 +75,14 @@ Supported:
 - Preserve visible presentation order after slide reordering.
 - Keep the PowerPoint cursor unchanged.
 - Return duplicate matches rather than forcing uniqueness.
+- Add regular non-placeholder shapes with `shape_add()`.
 - Modify selected shapes with `shape_update()`.
 - Update ordinary non-placeholder shapes; placeholder status is metadata, not a prerequisite.
 
 Not supported yet:
 
 - Recursively selecting shapes inside groups.
-- Removing shapes, inserting new shapes, or replacing pictures.
+- Removing shapes or replacing pictures.
 - Detailed run-level text formatting.
 - Treating XML IDs as persistent identifiers.
 - Resolving layout placeholders such as `ph_location_label()`; those are a separate officer concept.
@@ -187,6 +188,31 @@ names(targets)
 
 Selections also carry internal source metadata. Functions such as `shape_update()` use it to reject selections from a different presentation or selections that became stale after saving, reparsing, deleting shapes, or changing slide order. If that happens, rerun `shape_select()`.
 
+## Adding Shapes
+
+Use `shape_add()` to create ordinary non-placeholder shapes from coordinates. The function creates top-level regular PowerPoint shapes, appends them frontmost, and returns the modified `rpptx` object.
+
+```{r}
+x <- shape_add(
+  x,
+  left = 1,
+  top = 3,
+  width = 2.5,
+  height = 0.8,
+  text = "New shape",
+  geometry = "roundRect",
+  background = "#E6F4EA",
+  line = sp_line(color = "#408335", lwd = 1.5),
+  name = "Added shape"
+)
+
+shape_select(x, name = "Added shape", match = "exact")[
+  , c("name", "text", "placeholder", "left", "top", "width", "height")
+]
+```
+
+The shape is created with `<p:nvPr/>` and without `<p:ph/>`, so it is not treated as a layout placeholder.
+
 ## Updating Selected Shapes
 
 Use `shape_update()` when a selected marker should be changed in place. The function returns the modified `rpptx` object.
@@ -229,39 +255,36 @@ Different shape kinds have different capabilities. Regular shapes support all up
 
 ### Updating Multiple Shapes
 
-`shape_update()` updates every row in the selection. Scalar values are recycled to all selected shapes. Vectors and lists with the same length as the selection are applied row by row.
+Both `shape_add()` and `shape_update()` work row-wise. Scalar values are recycled to all shapes. Vectors and lists with the same length as the selection are applied row by row.
 
-The following example selects three marker shapes and updates their text, fill, outline, and alt-text descriptions in one call.
+The following example adds three marker shapes, selects them, and updates their text, fill, outline, and alt-text descriptions in one call.
 
 ```{r}
 status_deck <- function() {
   x <- read_pptx()
   x <- add_slide(x, layout = "Blank")
-  x <- ph_with(
+  x <- shape_add(
     x,
-    "Operational status markers",
-    location = ph_location(
-      left = 0.6, top = 0.35, width = 6.5, height = 0.45,
-      newlabel = "Demo title"
-    )
+    left = 0.6,
+    top = 0.35,
+    width = 6.5,
+    height = 0.45,
+    text = "Operational status markers",
+    name = "Demo title"
   )
 
-  for (i in 1:3) {
-    x <- ph_with(
-      x,
-      paste0("{status_", i, "}"),
-      location = ph_location(
-        left = 0.8 + (i - 1) * 2.35,
-        top = 1.45,
-        width = 1.9,
-        height = 1.05,
-        newlabel = paste0("Status marker ", i),
-        bg = "#F5F5F5",
-        ln = sp_line(color = "#878C96", lwd = 1.2)
-      )
-    )
-  }
-  x
+  shape_add(
+    x,
+    left = c(0.8, 3.15, 5.5),
+    top = 1.45,
+    width = 1.9,
+    height = 1.05,
+    text = paste0("{status_", 1:3, "}"),
+    geometry = "roundRect",
+    background = "#F5F5F5",
+    line = sp_line(color = "#878C96", lwd = 1.2),
+    name = paste0("Status marker ", 1:3)
+  )
 }
 
 template <- status_deck()
@@ -302,7 +325,7 @@ knitr::include_graphics(shape_thumbnail(c(
 )))
 ```
 
-This vignette creates the demo markers with `ph_with()` so the example is reproducible from an empty presentation. `shape_update()` itself does not depend on layout placeholders; it updates the selected slide XML nodes. The test suite covers ordinary non-placeholder shapes with `<p:nvPr/>` and no `<p:ph/>`.
+The demo markers are created with `shape_add()`, so they are ordinary non-placeholder shapes. `shape_update()` updates those selected slide XML nodes in place. The test suite also covers ordinary non-placeholder shapes with `<p:nvPr/>` and no `<p:ph/>`.
 
 ## Groups
 
@@ -320,7 +343,7 @@ Use `ph_location_*()` when you are creating new content from a layout. Use `shap
 
 ## Future Extensions
 
-Future functions can build on the same node-level setters to add new shapes, replace images, format text runs, reorder shapes, or edit shapes inside groups.
+Future functions can build on the same node-level setters to add pictures, replace images, format text runs, reorder shapes, or edit shapes inside groups.
 
 ```{r}
 #| eval: false
