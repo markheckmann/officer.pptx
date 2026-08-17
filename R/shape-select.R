@@ -49,7 +49,7 @@ shape_select <- function(x, slide_idx = NULL, text = NULL, name = NULL,
   out <- shape_filter_exact(out, "ph_type", ph_type)
   out <- shape_filter_lgl(out, "hidden", hidden)
 
-  new_pptx_shape_selection(out)
+  new_pptx_shape_selection(out, source = shape_selection_source(x, out))
 }
 
 
@@ -88,9 +88,25 @@ pptx_shape_inventory <- function(x, slide_idx = NULL) {
 }
 
 
-new_pptx_shape_selection <- function(x) {
+new_pptx_shape_selection <- function(x, source = NULL) {
+  attr(x, "pptx_shape_selection_source") <- source
   class(x) <- unique(c("pptx_shape_selection", class(x)))
   x
+}
+
+
+shape_selection_source <- function(x, selection) {
+  slide_files <- basename(x$presentation$slide_data()$target)
+  list(
+    package_dir = pptx_package_token(x),
+    slide_files = slide_files[selection$slide_idx],
+    slide_files_all = slide_files
+  )
+}
+
+
+pptx_package_token <- function(x) {
+  normalizePath(x$package_dir %||% "", mustWork = FALSE)
 }
 
 
@@ -226,7 +242,7 @@ xml_shape_frame <- function(node) {
   off <- xml2::xml_child(xfrm, "a:off")
   ext <- xml2::xml_child(xfrm, "a:ext")
   rot <- xml2::xml_attr(xfrm, "rot")
-  rot <- if (is.na(rot)) NA_real_ else rotation_to_degree(as.numeric(rot))
+  rot <- if (is.na(rot)) NA_real_ else -rotation_to_degree(as.numeric(rot))
 
   list(
     left = emu_to_inch(as.numeric(xml2::xml_attr(off, "x"))),

@@ -1,6 +1,7 @@
 *.html
 *.R
 *_files/
+shape-select-thumbnails/
 
 /.quarto/
 **/*.quarto_ipynb

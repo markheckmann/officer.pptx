@@ -1,5 +1,10 @@
 # officer.pptx 0.1.1
 
+* `shape_update()` modifies shapes returned by `shape_select()`, including
+  ordinary non-placeholder shapes, with support for text, solid background,
+  line, geometry, Selection Pane name, alt text description, and visibility (#15).
+* `shape_select()` selections now carry internal source metadata so mutation
+  functions can reject stale selections or selections from another presentation (#15).
 * `shape_select()` selects top-level slide shapes by visible text and metadata,
   returning shape coordinates and XML nodes for downstream templating workflows (#14).
 * The `shape_select()` vignette documents the current selector features, matching

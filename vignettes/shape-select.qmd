@@ -1,12 +1,12 @@
 ---
-title: "Selecting Shapes with shape_select()"
+title: "Selecting and Updating Shapes"
 format:
   html:
     toc: true
     toc-depth: 3
     code-fold: false
 vignette: >
-  %\VignetteIndexEntry{Selecting Shapes with shape_select()}
+  %\VignetteIndexEntry{Selecting and Updating Shapes}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,13 +21,30 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+shape_thumbnail <- function(name) {
+  vapply(name, function(one_name) {
+    source_path <- system.file(
+      "ext/vignettes/shape-select-thumbnails",
+      one_name,
+      package = "officer.pptx"
+    )
+    local_dir <- "shape-select-thumbnails"
+    dir.create(local_dir, showWarnings = FALSE)
+    local_path <- file.path(local_dir, one_name)
+    if (!file.exists(local_path)) {
+      file.copy(source_path, local_path)
+    }
+    local_path
+  }, character(1))
+}
 ```
 
 ## Purpose
 
-`shape_select()` selects existing top-level objects on PowerPoint slides. It is meant for template workflows where manually placed shapes act as markers for later processing.
+`shape_select()` selects existing top-level objects on PowerPoint slides. `shape_update()` can then modify the selected objects in place. Together they support template workflows where manually placed shapes act as markers for later processing.
 
-A common pattern is to place a rectangle on a slide and put a visible marker such as `{image_1}` inside it. `shape_select()` retrieves those markers and returns their slide coordinates, metadata, and XML nodes. It does not decide what happens next.
+A common pattern is to place a rectangle on a slide and put a visible marker such as `{image_1}` inside it. `shape_select()` retrieves those markers and returns their slide coordinates, metadata, and XML nodes.
 
 ```{r}
 x <- read_pptx()
@@ -46,7 +63,7 @@ shape_select(x, text = "{image_1}")
 
 ## Current Feature Scope
 
-The current implementation is intentionally selection-only.
+The current implementation covers top-level shape selection and focused updates of selected shapes.
 
 Supported:
 
@@ -58,11 +75,14 @@ Supported:
 - Preserve visible presentation order after slide reordering.
 - Keep the PowerPoint cursor unchanged.
 - Return duplicate matches rather than forcing uniqueness.
+- Modify selected shapes with `shape_update()`.
+- Update ordinary non-placeholder shapes; placeholder status is metadata, not a prerequisite.
 
 Not supported yet:
 
 - Recursively selecting shapes inside groups.
-- Replacing, hiding, removing, or inserting content.
+- Removing shapes, inserting new shapes, or replacing pictures.
+- Detailed run-level text formatting.
 - Treating XML IDs as persistent identifiers.
 - Resolving layout placeholders such as `ph_location_label()`; those are a separate officer concept.
 
@@ -165,6 +185,125 @@ targets <- shape_select(x, text = "{image_1}")
 names(targets)
 ```
 
+Selections also carry internal source metadata. Functions such as `shape_update()` use it to reject selections from a different presentation or selections that became stale after saving, reparsing, deleting shapes, or changing slide order. If that happens, rerun `shape_select()`.
+
+## Updating Selected Shapes
+
+Use `shape_update()` when a selected marker should be changed in place. The function returns the modified `rpptx` object.
+
+```{r}
+targets <- shape_select(x, text = "{image_1}", match = "exact")
+
+x <- shape_update(
+  x,
+  targets,
+  text = "Delayed",
+  background = "#FCE8E6",
+  line = sp_line(color = "#EC0016", lwd = 1.5),
+  name = "Status marker",
+  description = "Current service status",
+  hidden = FALSE
+)
+
+shape_select(x, name = "Status marker", match = "exact")[
+  , c("name", "text", "description", "hidden")
+]
+```
+
+`shape_update()` edits existing XML nodes. It does not remove and recreate shapes, so z-order and shape identity are preserved.
+
+Supported update arguments:
+
+| Argument | Meaning |
+|----------|---------|
+| `text` | Replace the complete visible text. |
+| `background` | Set a solid fill. Use `"transparent"` for no fill. |
+| `line` | Apply an `officer::sp_line()` outline. |
+| `left`, `top`, `width`, `height` | Update position and size in inches. |
+| `rotation` | Update rotation in degrees. |
+| `name` | Update the Selection Pane name. |
+| `description` | Update alt text description. Use `NA` to remove it. |
+| `hidden` | Hide or show the shape. |
+
+Different shape kinds have different capabilities. Regular shapes support all update arguments. Connectors support line, geometry, metadata, and visibility. Pictures support line, geometry, metadata, and visibility. Graphic frames and groups currently support geometry, metadata, and visibility.
+
+### Updating Multiple Shapes
+
+`shape_update()` updates every row in the selection. Scalar values are recycled to all selected shapes. Vectors and lists with the same length as the selection are applied row by row.
+
+The following example selects three marker shapes and updates their text, fill, outline, and alt-text descriptions in one call.
+
+```{r}
+status_deck <- function() {
+  x <- read_pptx()
+  x <- add_slide(x, layout = "Blank")
+  x <- ph_with(
+    x,
+    "Operational status markers",
+    location = ph_location(
+      left = 0.6, top = 0.35, width = 6.5, height = 0.45,
+      newlabel = "Demo title"
+    )
+  )
+
+  for (i in 1:3) {
+    x <- ph_with(
+      x,
+      paste0("{status_", i, "}"),
+      location = ph_location(
+        left = 0.8 + (i - 1) * 2.35,
+        top = 1.45,
+        width = 1.9,
+        height = 1.05,
+        newlabel = paste0("Status marker ", i),
+        bg = "#F5F5F5",
+        ln = sp_line(color = "#878C96", lwd = 1.2)
+      )
+    )
+  }
+  x
+}
+
+template <- status_deck()
+targets <- shape_select(template, text = "{status_", match = "contains")
+
+updated <- shape_update(
+  template,
+  targets,
+  text = c("On time", "Delayed", "Cancelled"),
+  background = c("#E6F4EA", "#FFF4CE", "#FCE8E6"),
+  line = list(
+    sp_line(color = "#408335", lwd = 1.5),
+    sp_line(color = "#F39200", lwd = 1.5),
+    sp_line(color = "#EC0016", lwd = 1.5)
+  ),
+  description = c(
+    "Green status marker",
+    "Yellow status marker",
+    "Red status marker"
+  )
+)
+
+shape_select(updated, name = "Status marker", match = "contains")[
+  , c("name", "text", "description")
+]
+```
+
+The thumbnails show the marker slide before and after the update:
+
+```{r}
+#| echo: false
+#| out-width: "49%"
+#| fig-show: hold
+
+knitr::include_graphics(shape_thumbnail(c(
+  "thumb-shape-update-before.png",
+  "thumb-shape-update-after.png"
+)))
+```
+
+This vignette creates the demo markers with `ph_with()` so the example is reproducible from an empty presentation. `shape_update()` itself does not depend on layout placeholders; it updates the selected slide XML nodes. The test suite covers ordinary non-placeholder shapes with `<p:nvPr/>` and no `<p:ph/>`.
+
 ## Groups
 
 The first implementation is top-level only. A group is returned as one row with `kind = "group"`; shapes inside the group are not listed or matched.
@@ -177,14 +316,14 @@ This keeps coordinates simple and reliable. Recursive group support would need s
 
 Use `ph_location_*()` when you are creating new content from a layout. Use `shape_select()` when an existing slide already contains marker shapes that should be discovered.
 
-## Typical Next Step
+`shape_update()` follows the same rule. It updates selected slide XML nodes and does not require those nodes to be placeholders. Ordinary PowerPoint shapes with `<p:nvPr/>` and no `<p:ph/>` are supported and covered by tests.
 
-`shape_select()` intentionally stops at retrieval. A downstream function can decide whether to overlay, replace, hide, or remove the selected marker shapes.
+## Future Extensions
+
+Future functions can build on the same node-level setters to add new shapes, replace images, format text runs, reorder shapes, or edit shapes inside groups.
 
 ```{r}
 #| eval: false
 targets <- shape_select(template, text = "{image_1}")
-
-# Future consumers can use targets$left, targets$top, targets$width,
-# targets$height, and targets$node.
+template <- shape_update(template, targets, hidden = TRUE)
 ```
