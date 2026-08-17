@@ -65,4 +65,5 @@ articles:
     contents:
       - text-replace
       - img-function
+      - image-insert
       - shape-select

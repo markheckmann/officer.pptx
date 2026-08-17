@@ -19,9 +19,10 @@ frame_fit_to_target(
 \arguments{
 \item{f_source, f_target}{\verb{[frame]}\cr Source and target frame.}
 
-\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
-\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame,
+\code{outside}: fit around target frame, \code{width}: match target frame width,
+\code{height}: match target frame height, \code{fill}: stretch to target frame,
+\code{none}: no scaling.}
 
 \item{scale}{\verb{[numeric >= 0]}\cr Value to scale image by.}
 
@@ -31,7 +32,7 @@ If \code{FALSE}, scale frame, so it contains the target frame.}
 \item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of scaled source frame width / height (default) or raw
 units (see \code{offset_mode}).}
 
-\item{offset_mode}{\verb{[character]}\cr Offset values are interprete as one of: multiple of scaled source frame's
+\item{offset_mode}{\verb{[character]}\cr Offset values are interpreted as one of: multiple of scaled source frame's
 width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
 }
 \value{

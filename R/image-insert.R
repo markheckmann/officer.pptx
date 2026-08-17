@@ -12,41 +12,98 @@
 # PPTX --------------------------------------------------
 
 
-#' Insert image at shape position
+#' Insert images over selected shapes
 #'
-#' @param x `[rpptx]`\cr An [officer] object. See [read_pptx()].
-#' @param image `[character]`\cr Path to image file.
-#' @param pattern `[character]`\cr Vector with patterns to find shapes. Interpreted as regex.
-#' Wrap in [stringr::fixed] for fixed string object or set `fixed = TRUE`.
-#' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
-#'   are processed.
-#' @param fixed `[logical]`\cr Interpret `pattern` as fixed string? (default `TRUE`).
+#' `image_insert()` inserts pictures over existing top-level slide objects. Targets
+#' can be supplied either as a [shape_select()] selection or, for convenience, by
+#' matching marker text with `pattern`.
+#'
+#' The original target object is kept in place. Use [shape_update()] with
+#' `hidden = TRUE` if the marker should be hidden after inserting the image.
+#'
+#' @param x `[rpptx]` or `[pptx_shape_selection]`\cr An [officer] object. See
+#'   [read_pptx()], or a selection returned by [shape_select()] for pipeline use.
+#' @param image `[character]`\cr Path to image file. In selection mode, `image`
+#'   must have length one or one value per selected target. In pattern mode,
+#'   `image` and `pattern` must have length one or a common length.
+#' @param pattern `[character]`\cr Marker text used to find target shapes. Ignored
+#'   when `selection` is supplied or `x` is already a [shape_select()] result.
+#' @param slide_idx `[integer]`\cr Slide indexes to search in visible presentation
+#'   order. If `NULL` (default), all slides are searched. Only used with
+#'   `pattern`.
+#' @param fixed `[logical]`\cr Interpret `pattern` as fixed substring? If `FALSE`,
+#'   `pattern` is interpreted as a regular expression.
+#' @param selection `[pptx_shape_selection]`\cr A selection returned by
+#'   [shape_select()]. Leave `NULL` when using `pattern` or when `x` is already a
+#'   piped selection.
+#' @param empty `[character(1)]`\cr What to do when no target shape is selected.
+#'   The default, `"error"`, fails early. Use `"ignore"` to return `x`
+#'   unchanged.
 #' @inheritParams frame_fit_to_target
+#' @return The modified `rpptx` object.
 #' @export
-#' @example inst/ext/examples/example-text-replace.R
-image_insert <- function(x, image, pattern, slide_idx = NULL, fixed = TRUE,
+#' @example inst/ext/examples/example-image-insert.R
+image_insert <- function(x, image, pattern = NULL, slide_idx = NULL, fixed = TRUE,
                          fit = "inside", scale = 1,
                          h_just = 0.5, v_just = 0.5,
-                         x_offset = 0, y_offset = 0, offset_mode = "source") {
-  assert_class(x, "rpptx")
-  slide_idx <- slide_idx %||% seq_along(x)
-  if (fixed) {
-    pattern <- stringr::fixed(pattern)
+                         x_offset = 0, y_offset = 0, offset_mode = "source",
+                         selection = NULL, empty = c("error", "ignore")) {
+  empty <- match.arg(empty)
+  inputs <- image_insert_inputs(x, selection)
+  x <- inputs$x
+  selection <- inputs$selection
+
+  if (!is.null(selection) && !is.null(pattern)) {
+    cli::cli_abort(
+      "Supply either {.arg selection} or {.arg pattern}, not both.",
+      call = NULL
+    )
   }
-  ii <- seq_along(image)
-  for (s_idx in slide_idx) {
-    x$cursor <- s_idx # necessary as used by
-    for (i in ii) {
-      cat("\rs_idx:", s_idx, "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
-      .pptx_image_insert_at_shape_on_slide(x,
-        image = image[i], pattern = pattern[i], slide_idx = s_idx,
-        fit = fit, scale = scale, h_just = h_just, v_just = v_just,
-        x_offset = x_offset, y_offset = y_offset, offset_mode = offset_mode
-      )
-      # shapes <- x |> pptx_shapes_on_slide(slide_idx = idx, pattern = pattern[i])
-      # x <- xml_add_image_at_shape(x, image[i], shapes, )
-    }
+
+  if (is.null(selection)) {
+    selection <- image_insert_pattern_selection(
+      x = x,
+      image = image,
+      pattern = pattern,
+      slide_idx = slide_idx,
+      fixed = fixed,
+      empty = empty
+    )
+    image <- selection$image
+    selection$image <- NULL
+  } else {
+    selection <- shape_selection_validate(x, selection, empty = empty)
+    image <- image_insert_recycle_image(image, nrow(selection))
   }
+
+  if (nrow(selection) == 0L) {
+    return(x)
+  }
+
+  image_insert_validate_selection(selection)
+  frames <- image_insert_frames(
+    image = image,
+    selection = selection,
+    fit = fit,
+    scale = scale,
+    h_just = h_just,
+    v_just = v_just,
+    x_offset = x_offset,
+    y_offset = y_offset,
+    offset_mode = offset_mode
+  )
+
+  old_cursor <- x$cursor
+  on.exit(x$cursor <- old_cursor, add = TRUE)
+
+  for (i in seq_len(nrow(selection))) {
+    xml_add_image_after_shape(
+      shape = selection$node[[i]],
+      img_path = image[[i]],
+      frame = frames[[i]]
+    )
+  }
+
   x
 }
 
@@ -65,85 +122,224 @@ pptx_image_insert_at_shape_temp <- function(x, image, pattern, slide_idx = NULL,
                                             scale = 1, h_just = 0.5,
                                             v_just = 0.5, x_offset = 0, y_offset = 0,
                                             fit_inside = TRUE) {
-  .Deprecated("insert_image", old = "pptx_image_insert_at_shape_temp")
-  assert_class(x, "rpptx")
-  stopifnot(length(image) == length(pattern))
-  pattern <- stringr::fixed(pattern) # currently not regex
-  slide_idx <- slide_idx %||% seq_along(x)
-  ii <- seq_along(image)
-  for (s_idx in slide_idx) {
-    x$cursor <- s_idx # necessary as used by
-    for (i in ii) {
-      cat("\rs_idx:", s_idx, "i:", i, "image:", basename(image[i]), "pattern", pattern[i])
-      .pptx_image_insert_at_shape_on_slide(x,
-        image = image[i], pattern = pattern[i], slide_idx = s_idx,
-        scale = scale, h_just = h_just, v_just = v_just,
-        x_offset = x_offset, y_offset = y_offset, fit_inside = fit_inside
+  .Deprecated("image_insert", old = "pptx_image_insert_at_shape_temp")
+  fit <- if (isTRUE(fit_inside)) "inside" else "outside"
+  image_insert(
+    x = x,
+    image = image,
+    pattern = pattern,
+    slide_idx = slide_idx,
+    fixed = TRUE,
+    fit = fit,
+    scale = scale,
+    h_just = h_just,
+    v_just = v_just,
+    x_offset = x_offset,
+    y_offset = y_offset,
+    empty = "ignore"
+  )
+}
+
+
+image_insert_inputs <- function(x, selection = NULL) {
+  if (inherits(x, "pptx_shape_selection")) {
+    if (!is.null(selection)) {
+      cli::cli_abort(
+        "Do not supply {.arg selection} when piping a {.cls pptx_shape_selection} into {.fn image_insert}.",
+        call = NULL
       )
-      # shapes <- x |> pptx_shapes_on_slide(slide_idx = idx, pattern = pattern[i])
-      # x <- xml_add_image_at_shape(x, image[i], shapes, )
     }
+    pptx <- attr(x, "pptx_shape_selection_pptx")
+    if (!inherits(pptx, "rpptx")) {
+      cli::cli_abort(
+        "Piped {.arg x} has no source presentation. Rerun {.fn shape_select}.",
+        call = NULL
+      )
+    }
+    return(list(x = pptx, selection = x))
   }
-  x
+
+  assert_class(x, "rpptx")
+  list(x = x, selection = selection)
 }
 
 
-# Insert image in placeholder shape
-.pptx_image_insert_at_shape_on_slide <- function(x, image, pattern, slide_idx, ...) {
-  shapes <- x |> pptx_shapes_on_slide(slide_idx, pattern = pattern)
-  if (length(shapes) > 0) {
-    xml_add_image_at_shape(x, image, shapes, ...)
+image_insert_pattern_selection <- function(x, image, pattern, slide_idx, fixed, empty) {
+  if (is.null(pattern)) {
+    cli::cli_abort(
+      "Supply {.arg pattern} or {.arg selection}.",
+      call = NULL
+    )
+  }
+  if (!is.logical(fixed) || length(fixed) != 1L || is.na(fixed)) {
+    cli::cli_abort("{.arg fixed} must be `TRUE` or `FALSE`.", call = NULL)
+  }
+
+  n <- image_insert_common_size(
+    image = image_insert_value_size(image, "image"),
+    pattern = image_insert_value_size(pattern, "pattern")
+  )
+  image <- rep_len(as.character(image), n)
+  pattern <- rep_len(as.character(pattern), n)
+  match <- if (fixed) "contains" else "regex"
+
+  rows <- vector("list", n)
+  for (i in seq_len(n)) {
+    selection <- shape_select(
+      x,
+      slide_idx = slide_idx,
+      text = pattern[[i]],
+      match = match
+    )
+    if (nrow(selection) == 0L && empty == "error") {
+      cli::cli_abort(
+        "No shape matched {.arg pattern} {.val {pattern[[i]]}}.",
+        call = NULL
+      )
+    }
+    selection$image <- rep(image[[i]], nrow(selection))
+    rows[[i]] <- selection
+  }
+
+  out <- dplyr::bind_rows(rows)
+  new_pptx_shape_selection(out, source = shape_selection_source(x, out), pptx = x)
+}
+
+
+image_insert_recycle_image <- function(image, n) {
+  if (n == 0L) {
+    return(character())
+  }
+  size <- image_insert_value_size(image, "image")
+  if (!size %in% c(1L, n)) {
+    cli::cli_abort(
+      "{.arg image} must have length 1 or the number of selected shapes ({n}).",
+      call = NULL
+    )
+  }
+  rep_len(as.character(image), n)
+}
+
+
+image_insert_value_size <- function(x, arg) {
+  if (!is.character(x) || anyNA(x)) {
+    cli::cli_abort("{.arg {arg}} must be a character vector without missing values.", call = NULL)
+  }
+  size <- length(x)
+  if (size == 0L) {
+    cli::cli_abort("{.arg {arg}} must not be empty.", call = NULL)
+  }
+  size
+}
+
+
+image_insert_common_size <- function(...) {
+  sizes <- unlist(list(...), use.names = FALSE)
+  n <- max(sizes)
+  invalid <- unique(sizes[sizes != 1L & sizes != n])
+  if (length(invalid) > 0L) {
+    cli::cli_abort(
+      "{.arg image} and {.arg pattern} must have length 1 or a common length.",
+      call = NULL
+    )
+  }
+  n
+}
+
+
+image_insert_validate_selection <- function(selection) {
+  if (any(selection$placeholder)) {
+    cli::cli_abort(
+      c(
+        "Selected targets must not be PowerPoint placeholders.",
+        "i" = "Use ordinary slide shapes as image markers."
+      ),
+      call = NULL
+    )
+  }
+
+  geometry <- selection[c("left", "top", "width", "height")]
+  valid <- stats::complete.cases(geometry) &
+    is.finite(selection$left) &
+    is.finite(selection$top) &
+    is.finite(selection$width) &
+    is.finite(selection$height) &
+    selection$width > 0 &
+    selection$height > 0
+  if (!all(valid)) {
+    cli::cli_abort(
+      "Selected targets must have finite positive geometry.",
+      call = NULL
+    )
   }
 }
 
 
-.xml_add_image_at_shape <- function(x, img_path, shape, ...) {
-  if (!is_node(shape)) {
-    cli::cli_abort(
-      c("Incorrect class for {.arg shape}",
-        "i" = "{.arg shape} must have class {.cls <xml_node>}, but found {.cls {class(shape)[1]}}"
-      )
+image_insert_frames <- function(image, selection, fit, scale, h_just, v_just,
+                                x_offset, y_offset, offset_mode) {
+  frames <- vector("list", nrow(selection))
+  for (i in seq_len(nrow(selection))) {
+    f_source <- frame_from_image(image[[i]])
+    f_target <- frame(
+      left = selection$left[[i]],
+      top = selection$top[[i]],
+      width = selection$width[[i]],
+      height = selection$height[[i]],
+      unit = "in"
+    )
+    frames[[i]] <- frame_fit_to_target(
+      f_source = f_source,
+      f_target = f_target,
+      fit = fit,
+      scale = scale,
+      h_just = h_just,
+      v_just = v_just,
+      x_offset = x_offset,
+      y_offset = y_offset,
+      offset_mode = offset_mode
     )
   }
-  if (!xml_name(shape) %in% c("sp", "cxnSp")) {
-    cli::cli_abort(
-      c("incorrect type for {.arg shape}",
-        "i" = "{.arg shape} requires be a shape shape but got {.val {xml_name(shape)}}"
-      )
-    )
-  }
-  if (xml_is_placeholder(shape)) {
-    cli::cli_abort(
-      c("{.arg shape} is a placeholder",
-        "i" = "Placeholder shapes are not supported."
-      )
-    )
-  }
-  f_target <- xml_shape_get_frame(shape)
-  f_source <- frame_from_image(img_path)
-  f_fitted <- frame_fit_to_target(f_source, f_target, ...)
-  loc <- do.call(ph_location, f_fitted)
-  ph_with(x, external_img(img_path), location = loc)
+  frames
 }
 
 
-# Caveat: Only works for non placeholder shapes.
+xml_add_image_after_shape <- function(shape, img_path, frame) {
+  assert_node(shape, argname = "shape")
+  assert_frame(frame)
+
+  image <- officer::external_img(img_path)
+  xml <- officer::to_pml(
+    x = image,
+    left = frame$left,
+    top = frame$top,
+    width = frame$width,
+    height = frame$height,
+    label = basename(img_path),
+    ph = "",
+    ln = officer::sp_line(lwd = 0)
+  )
+  node <- xml2::read_xml(xml)
+  xml2::xml_add_sibling(shape, node, .where = "after")
+  invisible(node)
+}
+
+
 xml_add_image_at_shape <- function(x, img_path, shape, ...) {
+  assert_class(x, "rpptx")
   if (is_node(shape)) {
     shape <- list(shape)
   }
   n <- max(length(img_path), length(shape))
   img_path <- rep_len(img_path, n)
   shape <- rep_len(shape, n)
-  for (i in seq(n)) {
-    .xml_add_image_at_shape(x, img_path[[i]], shape[[i]], ...)
+
+  for (i in seq_len(n)) {
+    f_target <- xml_shape_get_frame(shape[[i]])
+    f_source <- frame_from_image(img_path[[i]])
+    f_fitted <- frame_fit_to_target(f_source, f_target, ...)
+    xml_add_image_after_shape(shape[[i]], img_path[[i]], f_fitted)
   }
   x
-}
-
-
-xml_is_shape <- function(node) {
-  xml_name(node) %in% c("sp", "cxnSp")
 }
 
 
@@ -239,9 +435,10 @@ frame_from_image <- function(path) {
 #'
 #' *Note*: Scaling only, no translation (x,y) happening here.
 #'
-#' @param fit `[character]`\cr One of `inside`: fit inside target frame, `outside`: fit around target frame,
-#' `width`: match target frame width, `height`: match target frame height, `none`: no scaling.
-#' If `FALSE`, scale frame, so it contains the target frame.
+#' @param fit `[character]`\cr One of `inside`: fit inside target frame,
+#'   `outside`: fit around target frame, `width`: match target frame width,
+#'   `height`: match target frame height, `fill`: stretch to target frame,
+#'   `none`: no scaling.
 #' @inheritParams frame_fit_to_target
 #' @keywords internal
 #' @export
@@ -305,7 +502,7 @@ frame_center_to_target <- function(f_source, f_target) {
 #' `0=`left/bottom, `1=`right/top. By default, the image is centered.
 #' @param x_offset,y_offset `[numeric]`\cr Offset as multiple of scaled source frame width / height (default) or raw
 #' units (see `offset_mode`).
-#' @param offset_mode `[character]`\cr Offset values are interprete as one of: multiple of scaled source frame's
+#' @param offset_mode `[character]`\cr Offset values are interpreted as one of: multiple of scaled source frame's
 #' width / height (`source`, default), multiple of target frame's width / height (`target`), or raw `units`.
 #' @inheritParams frame_scale_to_target
 #' @keywords internal
@@ -318,6 +515,11 @@ frame_fit_to_target <- function(f_source, f_target,
   assert_frame(f_source)
   assert_frame(f_target)
   offset_mode <- match.arg(tolower(offset_mode), c("source", "target", "units"))
+  frame_fit_validate_numeric(scale, "scale", lower = 0)
+  frame_fit_validate_numeric(h_just, "h_just")
+  frame_fit_validate_numeric(v_just, "v_just")
+  frame_fit_validate_numeric(x_offset, "x_offset")
+  frame_fit_validate_numeric(y_offset, "y_offset")
 
   .f_source <- f_source
   # browser()
@@ -346,6 +548,17 @@ frame_fit_to_target <- function(f_source, f_target,
     f_source$top <- f_source$top - y_offset
   }
   f_source
+}
+
+
+frame_fit_validate_numeric <- function(x, arg, lower = NULL) {
+  if (!is.numeric(x) || length(x) != 1L || !is.finite(x)) {
+    cli::cli_abort("{.arg {arg}} must be a finite number.", call = NULL)
+  }
+  if (!is.null(lower) && x < lower) {
+    cli::cli_abort("{.arg {arg}} must be greater than or equal to {lower}.", call = NULL)
+  }
+  invisible(x)
 }
 
 

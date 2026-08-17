@@ -1,0 +1,304 @@
+---
+title: "Inserting Images at Marker Shapes"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+vignette: >
+  %\VignetteIndexEntry{Inserting Images at Marker Shapes}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(officer.pptx)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+image_insert_thumbnail <- function(name) {
+  vapply(name, function(one_name) {
+    source_candidates <- c(
+      file.path("inst/ext/vignettes/image-insert-thumbnails", one_name),
+      file.path("..", "inst/ext/vignettes/image-insert-thumbnails", one_name),
+      system.file(
+        "ext/vignettes/image-insert-thumbnails",
+        one_name,
+        package = "officer.pptx"
+      )
+    )
+    source_path <- source_candidates[file.exists(source_candidates)][1]
+    if (is.na(source_path)) {
+      stop("Thumbnail not found: ", one_name, call. = FALSE)
+    }
+    local_dir <- "image-insert-thumbnails"
+    dir.create(local_dir, showWarnings = FALSE)
+    local_path <- file.path(local_dir, one_name)
+    file.copy(source_path, local_path, overwrite = TRUE)
+    local_path
+  }, character(1))
+}
+```
+
+## Introduction
+
+`image_insert()` places images over existing slide shapes that act as position
+markers. This is useful when a template deck contains manually positioned
+rectangles with marker text like `{photo}` or `{chart_1}`, and you want to fill
+those positions programmatically at report-generation time.
+
+The function builds on `shape_select()` and reuses the same frame-fitting logic
+as `img()`. The key difference is:
+ 
+- `img()` places images into officer **placeholders** (layout-defined content
+  areas).
+- `image_insert()` places images over arbitrary **shapes** already present on
+  the slide.
+
+## Quick Start
+
+The following example creates a slide with two marker shapes, then inserts an
+image over each marker:
+
+```{r}
+#| eval: false
+library(officer.pptx)
+
+x <- read_pptx("template.pptx")
+
+x <- image_insert(
+  x,
+  image = "photo.png",
+  pattern = "{photo}",
+  fit = "inside"
+)
+
+print(x, target = "output.pptx")
+```
+
+This finds every shape whose visible text contains `"{photo}"` and inserts
+`photo.png` fitted inside that shape's bounding box.
+
+**Before** -- two marker shapes on a blank slide:
+
+```{r}
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics(image_insert_thumbnail("thumb-before.png"))
+```
+
+**After** `image_insert()` with `fit = "inside"`:
+
+```{r}
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics(image_insert_thumbnail("thumb-after-inside.png"))
+```
+
+**After** with `fit = "fill"` (stretches to fill the marker exactly):
+
+```{r}
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics(image_insert_thumbnail("thumb-after-fill.png"))
+```
+
+**After** hiding the markers with `shape_update(hidden = TRUE)`:
+
+```{r}
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics(image_insert_thumbnail("thumb-after-hidden.png"))
+```
+
+## Target Selection
+
+### Pattern mode
+
+The simplest approach uses `pattern` to search shape text:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "logo.png", pattern = "{logo}")
+```
+
+By default `fixed = TRUE`, which means substring matching (no regex). Set
+`fixed = FALSE` for regular expression matching:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "chart.png", pattern = "\\{chart_\\d+\\}", fixed = FALSE)
+```
+
+Use `slide_idx` to restrict the search to specific slides:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "chart.png", pattern = "{chart}", slide_idx = c(2, 4))
+```
+
+### Selection mode
+
+For more control, first select targets with `shape_select()` and pass the result:
+
+```{r}
+#| eval: false
+targets <- shape_select(x, text = "{photo}", match = "exact", kind = "shape")
+x <- image_insert(x, image = "photo.png", selection = targets)
+```
+
+This lets you use the full `shape_select()` filter set: text, name, kind, slide,
+placeholder status, hidden flag, and matching mode.
+
+### Pipeline mode
+
+Selections can also be piped directly:
+
+```{r}
+#| eval: false
+x <- shape_select(x, text = "{photo}", match = "exact") |>
+  image_insert(image = "photo.png", fit = "fill")
+```
+
+## Image Fitting
+
+The `fit` parameter controls how the image is sized relative to the target shape:
+
+| `fit`      | Behavior                                                       |
+|------------|----------------------------------------------------------------|
+| `"inside"` | Scale to fit entirely inside the target (default)              |
+| `"outside"`| Scale to cover the target completely                           |
+| `"width"`  | Match target width; height adjusts proportionally              |
+| `"height"` | Match target height; width adjusts proportionally              |
+| `"fill"`   | Stretch to fill the exact target dimensions (may distort)      |
+| `"none"`   | Use the image's raw dimensions without scaling                 |
+
+After fitting, you can further adjust with `scale`:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "icon.png", pattern = "{icon}", fit = "inside", scale = 0.8)
+```
+
+## Positioning
+
+### Justification
+
+Use `h_just` and `v_just` to control alignment within the target frame:
+
+- `h_just`: 0 = left, 0.5 = center (default), 1 = right
+- `v_just`: 0 = bottom, 0.5 = center (default), 1 = top
+
+```{r}
+#| eval: false
+x <- image_insert(x, "photo.png", pattern = "{photo}", h_just = 0, v_just = 1)
+```
+
+### Offsets
+
+Use `x_offset` and `y_offset` to shift the image after fitting:
+
+```{r}
+#| eval: false
+x <- image_insert(x, "photo.png", pattern = "{photo}", x_offset = 0.1, y_offset = -0.05)
+```
+ 
+The `offset_mode` parameter controls the unit:
+
+| `offset_mode` | Meaning                                          |
+|---------------|--------------------------------------------------|
+| `"source"`    | Multiple of the scaled image width/height        |
+| `"target"`    | Multiple of the target shape width/height        |
+| `"units"`     | Raw inches                                       |
+
+## Vectorization
+
+Multiple images can be inserted in one call. `image` and `pattern` must have
+length one or a common length:
+
+```{r}
+#| eval: false
+x <- image_insert(
+  x,
+  image = c("photo_1.png", "photo_2.png"),
+  pattern = c("{photo_1}", "{photo_2}"),
+  fit = "inside"
+)
+```
+
+Each pattern may match multiple shapes; the corresponding image is inserted over
+every match.
+
+In selection mode, `image` must have length one (same image for all targets) or
+one value per row:
+ 
+```{r}
+#| eval: false
+targets <- shape_select(x, text = "\\{photo_\\d+\\}", match = "regex")
+x <- image_insert(x, image = rep("fallback.png", nrow(targets)), selection = targets)
+```
+
+## Hiding Markers
+
+The original marker shape is kept in place. If you want to hide it after
+inserting the image, use `shape_update()`:
+
+```{r}
+#| eval: false
+targets <- shape_select(x, text = "{photo}", match = "exact")
+x <- image_insert(x, image = "photo.png", selection = targets)
+x <- shape_update(x, targets, hidden = TRUE)
+```
+
+## Empty Selection Handling
+
+By default, `image_insert()` errors when no target shape is found:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "photo.png", pattern = "{missing}")
+#> Error: No shape matched `pattern` "{missing}".
+```
+
+Use `empty = "ignore"` to silently skip when nothing matches:
+
+```{r}
+#| eval: false
+x <- image_insert(x, image = "photo.png", pattern = "{optional}", empty = "ignore")
+```
+
+## Limitations
+
+- Only **top-level** slide objects are selectable. Shapes inside groups are not
+  matched.
+- The image is fitted to the **rectangular bounding box**. Nonrectangular shapes
+  (e.g., circles, arrows) do not clip the image.
+- Target rotation is not inherited by the inserted image.
+- `fit = "outside"` makes the image larger than the target without cropping.
+- Placeholder shapes (from layouts) are explicitly rejected; use `img()` with
+  `ph_with()` for those.
+
+## Comparison with `img()`
+
+| Feature              | `img()`                        | `image_insert()`                   |
+|----------------------|--------------------------------|------------------------------------|
+| Target               | Layout placeholder             | Any existing slide shape           |
+| Selection            | `ph_location_*()`              | `pattern` or `shape_select()`      |
+| Insertion            | `ph_with(x, img(...), loc)`    | `image_insert(x, image, ...)`      |
+| Fitting              | Same fitting engine            | Same fitting engine                |
+| Styling (bg, line)   | Yes                            | Not yet                            |
+| Rotation             | Yes                            | Not yet                            |
+
+Both functions share the same frame-fitting logic (`frame_fit_to_target()`), so
+`fit`, `scale`, `h_just`, `v_just`, `x_offset`, `y_offset`, and `offset_mode`
+work identically.

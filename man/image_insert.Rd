@@ -2,12 +2,12 @@
 % Please edit documentation in R/image-insert.R
 \name{image_insert}
 \alias{image_insert}
-\title{Insert image at shape position}
+\title{Insert images over selected shapes}
 \usage{
 image_insert(
   x,
   image,
-  pattern,
+  pattern = NULL,
   slide_idx = NULL,
   fixed = TRUE,
   fit = "inside",
@@ -16,25 +16,33 @@ image_insert(
   v_just = 0.5,
   x_offset = 0,
   y_offset = 0,
-  offset_mode = "source"
+  offset_mode = "source",
+  selection = NULL,
+  empty = c("error", "ignore")
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object. See \code{\link[officer:read_pptx]{read_pptx()}}.}
+\item{x}{\verb{[rpptx]} or \verb{[pptx_shape_selection]}\cr An \link[officer:officer]{officer} object. See
+\code{\link[officer:read_pptx]{read_pptx()}}, or a selection returned by \code{\link[=shape_select]{shape_select()}} for pipeline use.}
 
-\item{image}{\verb{[character]}\cr Path to image file.}
+\item{image}{\verb{[character]}\cr Path to image file. In selection mode, \code{image}
+must have length one or one value per selected target. In pattern mode,
+\code{image} and \code{pattern} must have length one or a common length.}
 
-\item{pattern}{\verb{[character]}\cr Vector with patterns to find shapes. Interpreted as regex.
-Wrap in \link[stringr:fixed]{stringr::fixed} for fixed string object or set \code{fixed = TRUE}.}
+\item{pattern}{\verb{[character]}\cr Marker text used to find target shapes. Ignored
+when \code{selection} is supplied or \code{x} is already a \code{\link[=shape_select]{shape_select()}} result.}
 
-\item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default), all slides
-are processed.}
+\item{slide_idx}{\verb{[integer]}\cr Slide indexes to search in visible presentation
+order. If \code{NULL} (default), all slides are searched. Only used with
+\code{pattern}.}
 
-\item{fixed}{\verb{[logical]}\cr Interpret \code{pattern} as fixed string? (default \code{TRUE}).}
+\item{fixed}{\verb{[logical]}\cr Interpret \code{pattern} as fixed substring? If \code{FALSE},
+\code{pattern} is interpreted as a regular expression.}
 
-\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
-\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame,
+\code{outside}: fit around target frame, \code{width}: match target frame width,
+\code{height}: match target frame height, \code{fill}: stretch to target frame,
+\code{none}: no scaling.}
 
 \item{scale}{\verb{[numeric >= 0]}\cr Value to scale image by.}
 
@@ -44,23 +52,44 @@ If \code{FALSE}, scale frame, so it contains the target frame.}
 \item{x_offset, y_offset}{\verb{[numeric]}\cr Offset as multiple of scaled source frame width / height (default) or raw
 units (see \code{offset_mode}).}
 
-\item{offset_mode}{\verb{[character]}\cr Offset values are interprete as one of: multiple of scaled source frame's
+\item{offset_mode}{\verb{[character]}\cr Offset values are interpreted as one of: multiple of scaled source frame's
 width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
+
+\item{selection}{\verb{[pptx_shape_selection]}\cr A selection returned by
+\code{\link[=shape_select]{shape_select()}}. Leave \code{NULL} when using \code{pattern} or when \code{x} is already a
+piped selection.}
+
+\item{empty}{\verb{[character(1)]}\cr What to do when no target shape is selected.
+The default, \code{"error"}, fails early. Use \code{"ignore"} to return \code{x}
+unchanged.}
+}
+\value{
+The modified \code{rpptx} object.
 }
 \description{
-Insert image at shape position
+\code{image_insert()} inserts pictures over existing top-level slide objects. Targets
+can be supplied either as a \code{\link[=shape_select]{shape_select()}} selection or, for convenience, by
+matching marker text with \code{pattern}.
+}
+\details{
+The original target object is kept in place. Use \code{\link[=shape_update]{shape_update()}} with
+\code{hidden = TRUE} if the marker should be hidden after inserting the image.
 }
 \examples{
-# Some example file
-
-file_in <- example_pptx("text_replace")
+file_in <- example_pptx("image_insert")
 file_out <- tempfile(fileext = ".pptx")
 
-# file_open(file_in)
+x <- read_pptx(file_in)
 
-x <- pptx_read(file_in)
-x <- text_replace(x, "@" = ">>>", "{1}" = ":)")
+x <- image_insert(
+  x,
+  image = example_image("dog_1"),
+  pattern = "{2}",
+  fit = "inside"
+)
+
+targets <- shape_select(x, text = "{3}", match = "exact")
+x <- image_insert(targets, image = example_image("dog_2"), fit = "fill")
+
 print(x, target = file_out)
-
-# file_open(file_out)
 }

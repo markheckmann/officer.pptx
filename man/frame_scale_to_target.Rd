@@ -9,9 +9,10 @@ frame_scale_to_target(f_source, f_target, fit = "inside")
 \arguments{
 \item{f_source, f_target}{\verb{[frame]}\cr Source and target frame.}
 
-\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame, \code{outside}: fit around target frame,
-\code{width}: match target frame width, \code{height}: match target frame height, \code{none}: no scaling.
-If \code{FALSE}, scale frame, so it contains the target frame.}
+\item{fit}{\verb{[character]}\cr One of \code{inside}: fit inside target frame,
+\code{outside}: fit around target frame, \code{width}: match target frame width,
+\code{height}: match target frame height, \code{fill}: stretch to target frame,
+\code{none}: no scaling.}
 }
 \value{
 A \code{frame} object.

@@ -1,5 +1,8 @@
 # officer.pptx 0.1.1
 
+* `image_insert()` now builds on `shape_select()`, supports selected-shape and
+  piped workflows, preserves the current slide cursor, and inserts ordinary
+  non-placeholder pictures directly above their target shapes.
 * `shape_add()` and `shape_update()` now write replacement text into DrawingML
   `<a:t>` nodes so text inside created or updated shapes is rendered by
   PowerPoint/LibreOffice.
