@@ -3,6 +3,7 @@
 
 #' Add regular slide shapes
 #'
+#' \if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 #' `shape_add()` adds ordinary non-placeholder PowerPoint shapes to one or more
 #' slides. It creates top-level regular shapes (`p:sp`) and returns the modified
 #' `rpptx` object.

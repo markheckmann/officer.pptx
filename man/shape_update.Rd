@@ -6,7 +6,7 @@
 \usage{
 shape_update(
   x,
-  selection,
+  selection = NULL,
   text = NULL,
   background = NULL,
   line = NULL,
@@ -22,10 +22,13 @@ shape_update(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \code{rpptx} object returned by \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]} or \verb{[pptx_shape_selection]}\cr An \code{rpptx} object returned
+by \code{\link[officer:read_pptx]{officer::read_pptx()}}, or a selection returned by \code{\link[=shape_select]{shape_select()}} for
+use in a pipeline.}
 
 \item{selection}{\verb{[pptx_shape_selection]}\cr A selection returned by
-\code{\link[=shape_select]{shape_select()}} for \code{x}.}
+\code{\link[=shape_select]{shape_select()}} for \code{x}. Leave \code{NULL} when \code{x} is already a piped
+selection.}
 
 \item{text}{\verb{[character]}\cr Replacement text. If supplied, the complete text
 of each selected text-capable shape is replaced. The first existing text run
@@ -57,9 +60,11 @@ default, \code{"error"}, fails early. Use \code{"ignore"} to return \code{x} unc
 The modified \code{rpptx} object.
 }
 \description{
+\if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 \code{shape_update()} modifies existing top-level shapes returned by
 \code{\link[=shape_select]{shape_select()}}. It edits the selected XML nodes in place and returns the
-modified \code{rpptx} object.
+modified \code{rpptx} object. Selections can be supplied explicitly or piped from
+\code{\link[=shape_select]{shape_select()}}.
 }
 \details{
 Selection is based on existing slide objects, not PowerPoint layout
@@ -90,4 +95,9 @@ x <- shape_update(
 )
 
 shape_select(x, name = "Status marker", match = "exact")
+
+# The selection can also be piped directly into shape_update().
+x <- x |>
+  shape_select(name = "Status marker", match = "exact") |>
+  shape_update(text = "On time")
 }

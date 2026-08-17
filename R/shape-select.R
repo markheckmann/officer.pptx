@@ -3,6 +3,7 @@
 
 #' Select top-level shapes on slides
 #'
+#' \if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 #' `shape_select()` returns metadata and XML node references for existing
 #' top-level objects on one or more slides. It is intended for workflows where
 #' manually placed shapes serve as markers for later processing.
@@ -30,6 +31,8 @@
 #'   uses regular expressions.
 #' @return A tibble-like `pptx_shape_selection` object with one row per selected
 #'   top-level shape. The `node` list-column contains the underlying XML node.
+#'   The selection also carries its source presentation, so it can be piped into
+#'   [shape_update()].
 #' @export
 #' @example inst/ext/examples/example-shape-select.R
 shape_select <- function(x, slide_idx = NULL, text = NULL, name = NULL,
@@ -49,7 +52,7 @@ shape_select <- function(x, slide_idx = NULL, text = NULL, name = NULL,
   out <- shape_filter_exact(out, "ph_type", ph_type)
   out <- shape_filter_lgl(out, "hidden", hidden)
 
-  new_pptx_shape_selection(out, source = shape_selection_source(x, out))
+  new_pptx_shape_selection(out, source = shape_selection_source(x, out), pptx = x)
 }
 
 
@@ -88,8 +91,9 @@ pptx_shape_inventory <- function(x, slide_idx = NULL) {
 }
 
 
-new_pptx_shape_selection <- function(x, source = NULL) {
+new_pptx_shape_selection <- function(x, source = NULL, pptx = NULL) {
   attr(x, "pptx_shape_selection_source") <- source
+  attr(x, "pptx_shape_selection_pptx") <- pptx
   class(x) <- unique(c("pptx_shape_selection", class(x)))
   x
 }

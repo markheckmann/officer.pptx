@@ -44,6 +44,8 @@ shape_thumbnail <- function(name) {
 
 `shape_select()` selects existing top-level objects on PowerPoint slides. `shape_update()` can then modify the selected objects in place. Together they support template workflows where manually placed shapes act as markers for later processing.
 
+The `shape_*()` functions are experimental. Their core use case is stable enough for template workflows, but argument names, supported shape kinds, and edge-case behavior may still change while the API is refined.
+
 A common pattern is to place a rectangle on a slide and put a visible marker such as `{image_1}` inside it. `shape_select()` retrieves those markers and returns their slide coordinates, metadata, and XML nodes.
 
 ```{r}
@@ -215,7 +217,7 @@ The shape is created with `<p:nvPr/>` and without `<p:ph/>`, so it is not treate
 
 ## Updating Selected Shapes
 
-Use `shape_update()` when a selected marker should be changed in place. The function returns the modified `rpptx` object.
+Use `shape_update()` when a selected marker should be changed in place. The function returns the modified `rpptx` object. You can either pass the selection explicitly or pipe the selection directly into `shape_update()`.
 
 ```{r}
 targets <- shape_select(x, text = "{image_1}", match = "exact")
@@ -234,6 +236,14 @@ x <- shape_update(
 shape_select(x, name = "Status marker", match = "exact")[
   , c("name", "text", "description", "hidden")
 ]
+```
+
+The direct pipe form keeps shape updates inside the presentation pipeline:
+
+```{r}
+x <- x |>
+  shape_select(name = "Status marker", match = "exact") |>
+  shape_update(text = "On time")
 ```
 
 `shape_update()` edits existing XML nodes. It does not remove and recreate shapes, so z-order and shape identity are preserved.

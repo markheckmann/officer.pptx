@@ -49,8 +49,11 @@ uses regular expressions.}
 \value{
 A tibble-like \code{pptx_shape_selection} object with one row per selected
 top-level shape. The \code{node} list-column contains the underlying XML node.
+The selection also carries its source presentation, so it can be piped into
+\code{\link[=shape_update]{shape_update()}}.
 }
 \description{
+\if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 \code{shape_select()} returns metadata and XML node references for existing
 top-level objects on one or more slides. It is intended for workflows where
 manually placed shapes serve as markers for later processing.

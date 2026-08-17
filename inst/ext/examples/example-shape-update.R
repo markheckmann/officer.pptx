@@ -21,3 +21,8 @@ x <- shape_update(
 )
 
 shape_select(x, name = "Status marker", match = "exact")
+
+# The selection can also be piped directly into shape_update().
+x <- x |>
+  shape_select(name = "Status marker", match = "exact") |>
+  shape_update(text = "On time")

@@ -3,17 +3,22 @@
 
 #' Update selected slide shapes
 #'
+#' \if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 #' `shape_update()` modifies existing top-level shapes returned by
 #' [shape_select()]. It edits the selected XML nodes in place and returns the
-#' modified `rpptx` object.
+#' modified `rpptx` object. Selections can be supplied explicitly or piped from
+#' [shape_select()].
 #'
 #' Selection is based on existing slide objects, not PowerPoint layout
 #' placeholders. Ordinary non-placeholder shapes are supported and are the main
 #' use case.
 #'
-#' @param x `[rpptx]`\cr An `rpptx` object returned by [officer::read_pptx()].
+#' @param x `[rpptx]` or `[pptx_shape_selection]`\cr An `rpptx` object returned
+#'   by [officer::read_pptx()], or a selection returned by [shape_select()] for
+#'   use in a pipeline.
 #' @param selection `[pptx_shape_selection]`\cr A selection returned by
-#'   [shape_select()] for `x`.
+#'   [shape_select()] for `x`. Leave `NULL` when `x` is already a piped
+#'   selection.
 #' @param text `[character]`\cr Replacement text. If supplied, the complete text
 #'   of each selected text-capable shape is replaced. The first existing text run
 #'   keeps its formatting.
@@ -34,13 +39,16 @@
 #' @return The modified `rpptx` object.
 #' @export
 #' @example inst/ext/examples/example-shape-update.R
-shape_update <- function(x, selection, text = NULL, background = NULL,
+shape_update <- function(x, selection = NULL, text = NULL, background = NULL,
                          line = NULL, left = NULL, top = NULL, width = NULL,
                          height = NULL, rotation = NULL, name = NULL,
                          description = NULL, hidden = NULL,
                          empty = c("error", "ignore")) {
-  assert_class(x, "rpptx")
   empty <- match.arg(empty)
+  inputs <- shape_update_inputs(x, selection)
+  x <- inputs$x
+  selection <- inputs$selection
+
   selection <- shape_selection_validate(x, selection, empty = empty)
   n <- nrow(selection)
   if (n == 0L) {
@@ -72,6 +80,29 @@ shape_update <- function(x, selection, text = NULL, background = NULL,
   }
 
   x
+}
+
+
+shape_update_inputs <- function(x, selection = NULL) {
+  if (inherits(x, "pptx_shape_selection")) {
+    if (!is.null(selection)) {
+      cli::cli_abort(
+        "Do not supply {.arg selection} when piping a {.cls pptx_shape_selection} into {.fn shape_update}.",
+        call = NULL
+      )
+    }
+    pptx <- attr(x, "pptx_shape_selection_pptx")
+    if (!inherits(pptx, "rpptx")) {
+      cli::cli_abort(
+        "Piped {.arg x} has no source presentation. Rerun {.fn shape_select}.",
+        call = NULL
+      )
+    }
+    return(list(x = pptx, selection = x))
+  }
+
+  assert_class(x, "rpptx")
+  list(x = x, selection = selection)
 }
 
 
@@ -162,10 +193,6 @@ shape_selection_validate <- function(x, selection, empty = "error") {
       call = NULL
     )
   }
-  if (!identical(source$slide_files, current_slide_files[selection$slide_idx])) {
-    cli::cli_abort("{.arg selection} is stale. Rerun {.fn shape_select}.", call = NULL)
-  }
-
   for (i in seq_len(nrow(selection))) {
     slide <- pptx_slide_get_visible(x, selection$slide_idx[[i]])
     nodes <- xml_slide_top_level_shapes(slide)

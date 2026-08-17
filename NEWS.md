@@ -1,5 +1,11 @@
 # officer.pptx 0.1.1
 
+* The shape-selection vignette now calls out the experimental status of the
+  `shape_*()` API.
+* `shape_*()` function references now show an experimental lifecycle badge.
+* `shape_select()` selections can now be piped directly into `shape_update()`,
+  which returns the source `rpptx` object and lets shape updates stay inside a
+  presentation pipeline.
 * `shape_update()` now rejects non-finite or out-of-range transform values before
   modifying slide XML, preventing invalid `NA` coordinate or rotation attributes.
 * `shape_add()` creates regular non-placeholder PowerPoint shapes with direct

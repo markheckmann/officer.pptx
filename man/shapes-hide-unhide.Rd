@@ -17,5 +17,6 @@ shape_unhide(x, pattern, slide_idx = NULL)
 \item{slide_idx}{\verb{[numeric]}\cr Index of slides to process. If \code{NULL} (default), all slides}
 }
 \description{
-Hide und unhide shapes that match pattern
+\if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
+Hide and unhide shapes that match a text pattern.
 }

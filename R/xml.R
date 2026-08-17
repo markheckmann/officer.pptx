@@ -179,6 +179,9 @@ pptx_shapes_on_slide <- function(x, slide_idx, pattern = NULL) {
 
 
 #' Hide und unhide shapes that match pattern
+#'
+#' \if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
+#' Hide and unhide shapes that match a text pattern.
 #' @param x `[rpptx]`\cr An [officer] object. See [read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to find shapes to hide/unhide. Regex is not interpreted.
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides

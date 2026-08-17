@@ -120,6 +120,33 @@ test_that("shape_update supports vectorized values for duplicate selections", {
 })
 
 
+test_that("shape_update accepts a piped shape selection", {
+  x <- shape_update_deck() |>
+    shape_select(name = "Free marker", match = "exact") |>
+    shape_update(text = "Piped", name = "Piped marker") |>
+    ph_with("After update", location = ph_location(left = 4, top = 4, width = 2, height = 1))
+
+  updated <- shape_select(x, name = "Piped marker", match = "exact")
+
+  expect_s3_class(x, "rpptx")
+  expect_equal(updated$text, "Piped")
+})
+
+
+test_that("shape_update works with valid selection row subsets", {
+  x <- read_pptx()
+  x <- add_slide(x, layout = "Blank")
+  x <- shape_update_add_free_shape(x, id = "2001", name = "Marker 1", text = "{status}")
+  x <- shape_update_add_free_shape(x, id = "2002", name = "Marker 2", text = "{status}", top = 2)
+
+  sel <- shape_select(x, text = "{status}", match = "exact")
+  x <- shape_update(x, sel[2, ], text = "Only second")
+  updated <- shape_select(x, name = "Marker", match = "contains")
+
+  expect_equal(updated$text, c("{status}", "Only second"))
+})
+
+
 test_that("shape_update handles placeholders as an additional case", {
   x <- shape_update_deck()
   sel <- shape_select(x, name = "Placeholder marker", match = "exact")

@@ -55,6 +55,7 @@ omit the description.}
 The modified \code{rpptx} object.
 }
 \description{
+\if{html}{\out{<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg" alt="Experimental lifecycle"></a>}}
 \code{shape_add()} adds ordinary non-placeholder PowerPoint shapes to one or more
 slides. It creates top-level regular shapes (\code{p:sp}) and returns the modified
 \code{rpptx} object.
