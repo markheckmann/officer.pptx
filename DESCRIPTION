@@ -1,7 +1,7 @@
 Package: officer.pptx
 Type: Package
 Title: Add-on functions to work with PPTX and the officer package
-Version: 0.1.1.9020
+Version: 0.1.1.9021
 Author: Mark Heckmann <heckmann.mark@gmail.com>
 Maintainer: Mark Heckmann <heckmann.mark@gmail.com>
 Description: Add-on functions to work with PPTX and the officer package.

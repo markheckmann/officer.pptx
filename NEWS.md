@@ -1,5 +1,9 @@
 # officer.pptx 0.1.1
 
+* `shape_select()` selects top-level slide shapes by visible text and metadata,
+  returning shape coordinates and XML nodes for downstream templating workflows (#14).
+* The `shape_select()` vignette documents the current selector features, matching
+  behavior, result columns, and first-version limitations (#14).
 * The `img()` vignette now uses committed static thumbnails so the pkgdown site
   always shows images and no longer depends on live LibreOffice conversion for
   those figures.

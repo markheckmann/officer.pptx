@@ -15,7 +15,7 @@
 #' `text_replace()` was inspired by the Python project
 #' [python-pptx-text-replacer](https://github.com/fschaeck/python-pptx-text-replacer).
 #'
-#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
+#' @param x `[rpptx]`\cr An `rpptx` object returned by [officer::read_pptx()].
 #' @param pattern `[character]`\cr Vector with patterns to replace. Regex is not interpreted.
 #' @param replacement `[character]`\cr Vector with replacements.
 #' @param slide_idx `[numeric]`\cr Index of slides to process. If `NULL` (default), all slides
@@ -151,7 +151,7 @@ text_replace <- function(x, pattern = NULL, replacement = NULL, slide_idx = NULL
 #'
 #' Returns the log tibble from the last [text_replace()] call attached to the object.
 #'
-#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
+#' @param x `[rpptx]`\cr An `rpptx` object returned by [officer::read_pptx()].
 #' @return A tibble with columns `slide_idx`, `shape_name`, `pattern`, `replacement`, `count`,
 #'   or `NULL` if [text_replace()] has not been called on `x`.
 #' @export
@@ -166,7 +166,7 @@ text_replace_log <- function(x) {
 #' Checks the replacement log attached to an rpptx object against expected counts.
 #' Typically used after [text_replace()] in a pipeline.
 #'
-#' @param x `[rpptx]`\cr An [officer::rpptx] object. See [officer::read_pptx()].
+#' @param x `[rpptx]`\cr An `rpptx` object returned by [officer::read_pptx()].
 #' @param pattern `[character(1)]`\cr The pattern to check.
 #' @param n `[integer(1)]`\cr Expected exact number of replacements. Mutually exclusive with
 #'   `min`/`max`.

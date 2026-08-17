@@ -7,7 +7,7 @@
 text_replace_log(x)
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object that was processed by \code{\link[=text_replace]{text_replace()}}.}
+\item{x}{\verb{[rpptx]}\cr An \code{rpptx} object returned by \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 }
 \value{
 A tibble with columns \code{slide_idx}, \code{shape_name}, \code{pattern}, \code{replacement}, \code{count},

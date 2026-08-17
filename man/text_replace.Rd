@@ -17,7 +17,7 @@ text_replace(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:rpptx]{officer::rpptx} object. See \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
+\item{x}{\verb{[rpptx]}\cr An \code{rpptx} object returned by \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{pattern}{\verb{[character]}\cr Vector with patterns to replace. Regex is not interpreted.}
 

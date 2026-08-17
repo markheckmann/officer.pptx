@@ -14,7 +14,7 @@ text_replace_expect(
 )
 }
 \arguments{
-\item{x}{\verb{[rpptx]}\cr An \link[officer:officer]{officer} object that was processed by \code{\link[=text_replace]{text_replace()}}.}
+\item{x}{\verb{[rpptx]}\cr An \code{rpptx} object returned by \code{\link[officer:read_pptx]{officer::read_pptx()}}.}
 
 \item{pattern}{\verb{[character(1)]}\cr The pattern to check.}
 

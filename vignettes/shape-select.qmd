@@ -1,0 +1,190 @@
+---
+title: "Selecting Shapes with shape_select()"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+vignette: >
+  %\VignetteIndexEntry{Selecting Shapes with shape_select()}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(officer.pptx)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Purpose
+
+`shape_select()` selects existing top-level objects on PowerPoint slides. It is meant for template workflows where manually placed shapes act as markers for later processing.
+
+A common pattern is to place a rectangle on a slide and put a visible marker such as `{image_1}` inside it. `shape_select()` retrieves those markers and returns their slide coordinates, metadata, and XML nodes. It does not decide what happens next.
+
+```{r}
+x <- read_pptx()
+x <- add_slide(x, layout = "Blank")
+x <- ph_with(
+  x,
+  "{image_1}",
+  location = ph_location(
+    left = 1, top = 1, width = 3, height = 1.5,
+    newlabel = "Image marker"
+  )
+)
+
+shape_select(x, text = "{image_1}")
+```
+
+## Current Feature Scope
+
+The current implementation is intentionally selection-only.
+
+Supported:
+
+- Select top-level slide objects.
+- Search one slide, several slides, or all slides.
+- Match by visible text and Selection Pane name.
+- Filter by XML ID, object kind, placeholder status, placeholder type, and hidden state.
+- Return geometry in slide-level inches.
+- Preserve visible presentation order after slide reordering.
+- Keep the PowerPoint cursor unchanged.
+- Return duplicate matches rather than forcing uniqueness.
+
+Not supported yet:
+
+- Recursively selecting shapes inside groups.
+- Replacing, hiding, removing, or inserting content.
+- Treating XML IDs as persistent identifiers.
+- Resolving layout placeholders such as `ph_location_label()`; those are a separate officer concept.
+
+## Matching
+
+The `match` argument controls how `text` and `name` filters are interpreted.
+
+| Mode | Behavior |
+|------|----------|
+| `"contains"` | Default. Fixed substring matching. |
+| `"exact"` | Complete-value matching after trimming leading and trailing whitespace. |
+| `"regex"` | Regular-expression matching. |
+
+### Contains Matching
+
+`contains` is the default because marker text is often embedded in helper text while designing templates.
+
+```{r}
+x <- add_slide(x, layout = "Blank")
+x <- ph_with(
+  x,
+  "Insert {image_1} here",
+  location = ph_location(
+    left = 1, top = 1, width = 3, height = 1.5,
+    newlabel = "Instruction marker"
+  )
+)
+
+shape_select(x, text = "{image_1}")[, c("slide_idx", "name", "text")]
+```
+
+### Exact Matching
+
+Use `match = "exact"` when the whole shape text should be the marker. Leading and trailing whitespace are ignored.
+
+```{r}
+shape_select(x, text = "{image_1}", match = "exact")[, c("slide_idx", "name", "text")]
+```
+
+### Regex Matching
+
+Use `match = "regex"` for marker families.
+
+```{r}
+shape_select(
+  x,
+  text = "^\\s*\\{image_[0-9]+\\}\\s*$",
+  match = "regex"
+)[, c("slide_idx", "name", "text")]
+```
+
+## Filtering by Metadata
+
+Different criteria are combined with AND. Multiple values within one criterion are alternatives.
+
+```{r}
+shape_select(
+  x,
+  text = "{image_1}",
+  name = "marker"
+)[, c("slide_idx", "shape_idx", "name", "text", "kind")]
+```
+
+Object kinds currently include:
+
+| Kind | Meaning |
+|------|---------|
+| `"shape"` | Regular PowerPoint shape or text box. |
+| `"picture"` | Picture object. |
+| `"table"` | Table graphic frame. |
+| `"chart"` | Chart graphic frame. |
+| `"graphic_frame"` | Other graphic frame. |
+| `"group"` | Top-level group. |
+| `"connector"` | Connector shape. |
+
+## Result Columns
+
+`shape_select()` returns a tibble-like `pptx_shape_selection` object. The `node` list-column is kept in the object for downstream functions, but hidden by the print method.
+
+Important columns:
+
+| Column | Meaning |
+|--------|---------|
+| `slide_idx` | Visible presentation slide index. |
+| `shape_idx` | Top-level shape-tree position, which approximates z-order. |
+| `id` | Current slide-local XML shape ID. Not stable across save operations. |
+| `name` | Selection Pane name. |
+| `text` | Visible text. For groups this is `NA` in the first implementation. |
+| `kind` | Object kind. |
+| `placeholder` | Whether the object is an actual placeholder. |
+| `ph_type` | Placeholder type, if present. |
+| `hidden` | Whether `p:cNvPr/@hidden` is set to `"1"`. |
+| `left`, `top`, `width`, `height` | Slide-level frame in inches. |
+| `rotation` | Rotation in degrees, if present. |
+| `description` | Alternative text description, if present. |
+| `node` | XML node reference for downstream code. |
+
+```{r}
+targets <- shape_select(x, text = "{image_1}")
+names(targets)
+```
+
+## Groups
+
+The first implementation is top-level only. A group is returned as one row with `kind = "group"`; shapes inside the group are not listed or matched.
+
+This keeps coordinates simple and reliable. Recursive group support would need separate handling for group-relative coordinates, nested z-order, rotation, and possible duplicate matches between a group and its children.
+
+## Relation to officer Placeholders
+
+`shape_select()` works on actual slide XML nodes. It is different from officer's `ph_location_*()` functions, which resolve layout placeholders.
+
+Use `ph_location_*()` when you are creating new content from a layout. Use `shape_select()` when an existing slide already contains marker shapes that should be discovered.
+
+## Typical Next Step
+
+`shape_select()` intentionally stops at retrieval. A downstream function can decide whether to overlay, replace, hide, or remove the selected marker shapes.
+
+```{r}
+#| eval: false
+targets <- shape_select(template, text = "{image_1}")
+
+# Future consumers can use targets$left, targets$top, targets$width,
+# targets$height, and targets$node.
+```
