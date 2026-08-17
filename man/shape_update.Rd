@@ -37,11 +37,11 @@ keeps its formatting.}
 \item{line}{\verb{[sp_line]}\cr An \code{\link[officer:sp_line]{officer::sp_line()}} object, or a list of
 \code{sp_line} objects, used as outline style.}
 
-\item{left, top, width, height}{\verb{[numeric]}\cr Shape position and size in inches.
+\item{left, top, width, height}{\verb{[numeric]}\cr Finite shape position and size in inches.
 \code{NULL} leaves the current value unchanged.}
 
-\item{rotation}{\verb{[numeric]}\cr Shape rotation in degrees. Positive values use
-the same convention as \code{\link[officer:ph_location]{officer::ph_location()}}.}
+\item{rotation}{\verb{[numeric]}\cr Finite shape rotation in degrees. Positive
+values use the same convention as \code{\link[officer:ph_location]{officer::ph_location()}}.}
 
 \item{name}{\verb{[character]}\cr Shape name as shown in PowerPoint's Selection Pane.}
 

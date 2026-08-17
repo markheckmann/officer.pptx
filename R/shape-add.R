@@ -11,7 +11,7 @@
 #' `<p:nvPr/>` node and no `<p:ph/>` marker.
 #'
 #' @param x `[rpptx]`\cr An `rpptx` object returned by [officer::read_pptx()].
-#' @param left,top,width,height `[numeric]`\cr Shape position and size in inches.
+#' @param left,top,width,height `[numeric]`\cr Finite shape position and size in inches.
 #' @param text `[character]`\cr Text to put in the shape.
 #' @param slide_idx `[integer]`\cr Slide indexes in visible presentation order.
 #'   If `NULL`, shapes are added to the current slide.
@@ -21,8 +21,8 @@
 #'   `"transparent"` for no fill.
 #' @param line `[sp_line]`\cr An [officer::sp_line()] object, or a list of
 #'   `sp_line` objects, used as outline style.
-#' @param rotation `[numeric]`\cr Shape rotation in degrees. Positive values use
-#'   the same convention as [officer::ph_location()].
+#' @param rotation `[numeric]`\cr Finite shape rotation in degrees. Positive
+#'   values use the same convention as [officer::ph_location()].
 #' @param name `[character]`\cr Shape name as shown in PowerPoint's Selection Pane.
 #'   If `NULL`, names are generated automatically.
 #' @param description `[character]`\cr Alternative text description. Use `NA` to
@@ -87,16 +87,16 @@ shape_add_args <- function(x, n, left, top, width, height, text, slide_idx,
                            geometry, background, line, rotation, name,
                            description, hidden) {
   list(
-    left = shape_recycle_num(left, n, "left", finite = TRUE),
-    top = shape_recycle_num(top, n, "top", finite = TRUE),
-    width = shape_recycle_num(width, n, "width", positive = TRUE, finite = TRUE),
-    height = shape_recycle_num(height, n, "height", positive = TRUE, finite = TRUE),
+    left = shape_recycle_num(left, n, "left", finite = TRUE, scale = 914400),
+    top = shape_recycle_num(top, n, "top", finite = TRUE, scale = 914400),
+    width = shape_recycle_num(width, n, "width", positive = TRUE, finite = TRUE, scale = 914400),
+    height = shape_recycle_num(height, n, "height", positive = TRUE, finite = TRUE, scale = 914400),
     text = shape_recycle_chr(text, n, "text", allow_na = FALSE),
     slide_idx = shape_recycle_slide_idx(x, slide_idx, n),
     geometry = shape_recycle_geometry(geometry, n),
     background = shape_recycle_background(background, n),
     line = shape_recycle_line(line, n),
-    rotation = shape_recycle_num(rotation, n, "rotation", finite = TRUE),
+    rotation = shape_recycle_num(rotation, n, "rotation", finite = TRUE, scale = 60000),
     name = shape_recycle_shape_name(name, n),
     description = shape_recycle_chr(description, n, "description", allow_na = TRUE),
     hidden = shape_recycle_lgl(hidden, n, "hidden")

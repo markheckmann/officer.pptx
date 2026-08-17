@@ -178,6 +178,14 @@ test_that("shape_add validates inputs before inserting shapes", {
 
   expect_error(shape_add(x, left = 1, top = 1, width = 0, height = 1), "positive")
   expect_error(shape_add(x, left = Inf, top = 1, width = 1, height = 1), "finite")
+  expect_error(
+    shape_add(x, left = .Machine$integer.max / 914400 + 1, top = 1, width = 1, height = 1),
+    "supported range"
+  )
+  expect_error(
+    shape_add(x, left = 1, top = 1, width = 1, height = 1, rotation = .Machine$integer.max / 60000 + 1),
+    "supported range"
+  )
   expect_error(shape_add(x, left = 1, top = 1, width = 1, height = 1, geometry = "not-a-shape"), "valid geometry")
   expect_error(shape_add(x, left = 1:2, top = 1:3, width = 1, height = 1), "length 1")
   expect_error(shape_add(x, left = 1, top = 1, width = 1, height = 1, slide_idx = 99), "invalid indices")

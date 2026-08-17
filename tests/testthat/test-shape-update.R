@@ -186,6 +186,33 @@ test_that("shape_update validates unsupported and invalid updates before changes
 })
 
 
+test_that("shape_update rejects invalid transform values before XML mutation", {
+  x <- shape_update_deck()
+  sel <- shape_select(x, name = "Free marker", match = "exact")
+  node <- sel$node[[1]]
+  off <- xml2::xml_find_first(node, "p:spPr/a:xfrm/a:off")
+  xfrm <- xml2::xml_find_first(node, "p:spPr/a:xfrm")
+  old_x <- xml2::xml_attr(off, "x")
+
+  expect_error(shape_update(x, sel, left = Inf), "finite")
+  expect_error(shape_update(x, sel, top = -Inf), "finite")
+  expect_error(shape_update(x, sel, width = Inf), "finite")
+  expect_error(shape_update(x, sel, rotation = Inf), "finite")
+  expect_error(
+    shape_update(x, sel, left = .Machine$integer.max / 914400 + 1),
+    "supported range"
+  )
+  expect_error(
+    shape_update(x, sel, rotation = .Machine$integer.max / 60000 + 1),
+    "supported range"
+  )
+
+  expect_equal(xml2::xml_attr(off, "x"), old_x)
+  expect_false(identical(xml2::xml_attr(off, "x"), "NA"))
+  expect_false(identical(xml2::xml_attr(xfrm, "rot"), "NA"))
+})
+
+
 test_that("shape_update detects stale selections", {
   x <- shape_update_deck()
   sel <- shape_select(x, name = "Free marker", match = "exact")

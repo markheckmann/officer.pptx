@@ -21,10 +21,10 @@
 #'   `"transparent"` to force no fill.
 #' @param line `[sp_line]`\cr An [officer::sp_line()] object, or a list of
 #'   `sp_line` objects, used as outline style.
-#' @param left,top,width,height `[numeric]`\cr Shape position and size in inches.
+#' @param left,top,width,height `[numeric]`\cr Finite shape position and size in inches.
 #'   `NULL` leaves the current value unchanged.
-#' @param rotation `[numeric]`\cr Shape rotation in degrees. Positive values use
-#'   the same convention as [officer::ph_location()].
+#' @param rotation `[numeric]`\cr Finite shape rotation in degrees. Positive
+#'   values use the same convention as [officer::ph_location()].
 #' @param name `[character]`\cr Shape name as shown in PowerPoint's Selection Pane.
 #' @param description `[character]`\cr Alternative text description. Use `NA` to
 #'   remove an existing description.
@@ -83,11 +83,11 @@ shape_update_args <- function(n, text = NULL, background = NULL, line = NULL,
     text = shape_recycle_chr(text, n, "text", allow_na = FALSE),
     background = shape_recycle_background(background, n),
     line = shape_recycle_line(line, n),
-    left = shape_recycle_num(left, n, "left"),
-    top = shape_recycle_num(top, n, "top"),
-    width = shape_recycle_num(width, n, "width", positive = TRUE),
-    height = shape_recycle_num(height, n, "height", positive = TRUE),
-    rotation = shape_recycle_num(rotation, n, "rotation"),
+    left = shape_recycle_num(left, n, "left", finite = TRUE, scale = 914400),
+    top = shape_recycle_num(top, n, "top", finite = TRUE, scale = 914400),
+    width = shape_recycle_num(width, n, "width", positive = TRUE, finite = TRUE, scale = 914400),
+    height = shape_recycle_num(height, n, "height", positive = TRUE, finite = TRUE, scale = 914400),
+    rotation = shape_recycle_num(rotation, n, "rotation", finite = TRUE, scale = 60000),
     name = shape_recycle_chr(name, n, "name", allow_na = FALSE),
     description = shape_recycle_chr(description, n, "description", allow_na = TRUE),
     hidden = shape_recycle_lgl(hidden, n, "hidden")
@@ -284,7 +284,8 @@ shape_recycle_line <- function(x, n) {
 }
 
 
-shape_recycle_num <- function(x, n, arg, positive = FALSE, finite = FALSE) {
+shape_recycle_num <- function(x, n, arg, positive = FALSE, finite = FALSE,
+                              scale = NULL) {
   if (is.null(x)) {
     return(list())
   }
@@ -293,6 +294,9 @@ shape_recycle_num <- function(x, n, arg, positive = FALSE, finite = FALSE) {
   }
   if (finite && any(!is.finite(x))) {
     cli::cli_abort("{.arg {arg}} must contain finite values.", call = NULL)
+  }
+  if (!is.null(scale) && any(abs(x * scale) > .Machine$integer.max)) {
+    cli::cli_abort("{.arg {arg}} contains values outside the supported range.", call = NULL)
   }
   if (positive && any(x <= 0)) {
     cli::cli_abort("{.arg {arg}} must contain positive values.", call = NULL)
