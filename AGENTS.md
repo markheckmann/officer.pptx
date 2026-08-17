@@ -177,6 +177,11 @@ covr::percent_coverage(cov)
   effect.
 - `xml_shape_text_replace()` processes matches in reverse order to keep row
   indices stable.
+- Shape text must be written into DrawingML `<a:t>` nodes. Writing text directly
+  on `<a:r>` may still be readable via `xml2::xml_text()` and `shape_select()`,
+  but PowerPoint/LibreOffice renderers will not display it.
+- When changing shape text intended for rendering, mark affected `<a:rPr>` nodes
+  with `dirty="1"` so PowerPoint/LibreOffice refresh the visible text.
 - `img()` auto-detects image dimensions for supported formats (jpeg, png, gif,
   tiff, svg, emf, wmf, pdf).
 
