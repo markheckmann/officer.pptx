@@ -211,3 +211,38 @@ test_that("shape_select validates inputs", {
   expect_error(shape_select(x, hidden = NA), "logical")
   expect_error(shape_select(x, text = NA_character_), "without missing")
 })
+
+
+test_that("shape_select resolves inherited placeholder geometry from layout", {
+  x <- read_pptx()
+  x <- add_slide(x, layout = "Two Content")
+  slide <- x$slide$get_slide(x$cursor)
+  sp_tree <- xml2::xml_find_first(slide$get(), "//p:spTree")
+
+  for (idx in c(1, 2)) {
+    bare <- xml2::read_xml(sprintf(paste0(
+      '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" ',
+      'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ',
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
+      "<p:nvSpPr>",
+      '<p:cNvPr id="%d" name="Body %d"/>',
+      '<p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr>',
+      '<p:nvPr><p:ph type="body" idx="%d"/></p:nvPr>',
+      "</p:nvSpPr>",
+      "<p:spPr/>",
+      "<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr/><a:t>body %d</a:t></a:r></a:p></p:txBody>",
+      "</p:sp>"
+    ), 100L + idx, idx, idx, idx))
+    xml2::xml_add_child(sp_tree, bare)
+  }
+
+  sel <- shape_select(x)
+
+  expect_equal(nrow(sel), 2)
+  expect_true(all(sel$placeholder))
+  expect_true(all(is.finite(sel$left)))
+  expect_true(all(is.finite(sel$width)))
+  expect_true(all(sel$width > 0))
+  expect_true(all(sel$height > 0))
+  expect_true(sel$left[sel$name == "Body 1"] < sel$left[sel$name == "Body 2"])
+})

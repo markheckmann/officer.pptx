@@ -221,6 +221,42 @@ The `offset_mode` parameter controls the unit:
 | `"target"`    | Multiple of the target shape width/height        |
 | `"units"`     | Raw inches                                       |
 
+## Styling
+
+Inserted pictures can be styled with `rotation`, `background`, `line`, and
+`alt`:
+
+```{r}
+#| eval: false
+x <- image_insert(
+  x,
+  image = "photo.png",
+  pattern = "{photo}",
+  fit = "inside",
+  rotation = 5,
+  background = "#F0F0F0",
+  line = sp_line(color = "#333333", lwd = 1.5),
+  alt = "Team photo from offsite"
+)
+```
+
+| Parameter    | Description                                                    |
+|--------------|----------------------------------------------------------------|
+| `rotation`   | Anti-clockwise rotation in degrees (default `0`)               |
+| `background` | Color behind the image (hex or name; default `"transparent"`)  |
+| `line`       | Border: a color string or `sp_line()` object (default: none)   |
+| `alt`        | Alternative text for accessibility (default `""`)              |
+
+`line` accepts either a simple color string (e.g. `"red"`) or a full
+`sp_line()` specification for width, compound type, and dash style.
+
+```{r}
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics(image_insert_thumbnail("thumb-after-styled.png"))
+```
+
 ## Vectorization
 
 Multiple images can be inserted in one call. `image` and `pattern` must have
@@ -283,7 +319,6 @@ x <- image_insert(x, image = "photo.png", pattern = "{optional}", empty = "ignor
   matched.
 - The image is fitted to the **rectangular bounding box**. Nonrectangular shapes
   (e.g., circles, arrows) do not clip the image.
-- Target rotation is not inherited by the inserted image.
 - `fit = "outside"` makes the image larger than the target without cropping.
 - Placeholder shapes (from layouts) are explicitly rejected; use `img()` with
   `ph_with()` for those.
@@ -296,8 +331,8 @@ x <- image_insert(x, image = "photo.png", pattern = "{optional}", empty = "ignor
 | Selection            | `ph_location_*()`              | `pattern` or `shape_select()`      |
 | Insertion            | `ph_with(x, img(...), loc)`    | `image_insert(x, image, ...)`      |
 | Fitting              | Same fitting engine            | Same fitting engine                |
-| Styling (bg, line)   | Yes                            | Not yet                            |
-| Rotation             | Yes                            | Not yet                            |
+| Styling (bg, line)   | Yes                            | Yes                                |
+| Rotation             | Yes                            | Yes                                |
 
 Both functions share the same frame-fitting logic (`frame_fit_to_target()`), so
 `fit`, `scale`, `h_just`, `v_just`, `x_offset`, `y_offset`, and `offset_mode`

@@ -17,6 +17,10 @@ image_insert(
   x_offset = 0,
   y_offset = 0,
   offset_mode = "source",
+  rotation = 0,
+  background = "transparent",
+  line = NULL,
+  alt = "",
   selection = NULL,
   empty = c("error", "ignore")
 )
@@ -54,6 +58,17 @@ units (see \code{offset_mode}).}
 
 \item{offset_mode}{\verb{[character]}\cr Offset values are interpreted as one of: multiple of scaled source frame's
 width / height (\code{source}, default), multiple of target frame's width / height (\code{target}), or raw \code{units}.}
+
+\item{rotation}{\verb{[numeric]}\cr Rotation in degrees (anti-clockwise). Default
+\code{0}.}
+
+\item{background}{\verb{[character]}\cr Background color behind the image (hex or
+color name). Default \code{"transparent"}.}
+
+\item{line}{Border around the image. Either a color string or an
+\code{\link[officer:sp_line]{officer::sp_line()}} object for detailed control. Default: no border.}
+
+\item{alt}{\verb{[character]}\cr Alternative text for accessibility. Default \code{""}.}
 
 \item{selection}{\verb{[pptx_shape_selection]}\cr A selection returned by
 \code{\link[=shape_select]{shape_select()}}. Leave \code{NULL} when using \code{pattern} or when \code{x} is already a

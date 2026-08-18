@@ -126,3 +126,40 @@ test_that("image_insert can ignore empty selections", {
 
   expect_equal(nrow(shape_select(y, kind = "picture")), 0)
 })
+
+
+test_that("image_insert passes styling args through to the picture", {
+  x <- image_insert_deck()
+
+  x <- image_insert(
+    x,
+    image = test_image("flag_de"),
+    pattern = "{image_1}",
+    fit = "fill",
+    rotation = 15,
+    background = "#FF0000",
+    line = sp_line(color = "#00FF00", lwd = 2),
+    alt = "German flag"
+  )
+
+  pic <- shape_select(x, kind = "picture")
+  expect_equal(nrow(pic), 1)
+  expect_equal(pic$rotation, 15)
+  expect_equal(pic$description, "German flag")
+
+  node <- pic$node[[1]]
+  bg_node <- xml2::xml_find_first(node, ".//p:spPr/a:solidFill/a:srgbClr")
+  expect_false(is.na(xml2::xml_attr(bg_node, "val")))
+  expect_equal(tolower(xml2::xml_attr(bg_node, "val")), "ff0000")
+
+  ln_node <- xml2::xml_find_first(node, ".//p:spPr/a:ln/a:solidFill/a:srgbClr")
+  expect_false(is.na(xml2::xml_attr(ln_node, "val")))
+  expect_equal(tolower(xml2::xml_attr(ln_node, "val")), "00ff00")
+
+  file <- tempfile(fileext = ".pptx")
+  print(x, target = file)
+  y <- read_pptx(file)
+  pic2 <- shape_select(y, kind = "picture")
+  expect_equal(pic2$rotation, 15)
+  expect_equal(pic2$description, "German flag")
+})

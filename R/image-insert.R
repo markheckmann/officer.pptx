@@ -33,6 +33,13 @@
 #'   `pattern`.
 #' @param fixed `[logical]`\cr Interpret `pattern` as fixed substring? If `FALSE`,
 #'   `pattern` is interpreted as a regular expression.
+#' @param rotation `[numeric]`\cr Rotation in degrees (anti-clockwise). Default
+#'   `0`.
+#' @param background `[character]`\cr Background color behind the image (hex or
+#'   color name). Default `"transparent"`.
+#' @param line Border around the image. Either a color string or an
+#'   [officer::sp_line()] object for detailed control. Default: no border.
+#' @param alt `[character]`\cr Alternative text for accessibility. Default `""`.
 #' @param selection `[pptx_shape_selection]`\cr A selection returned by
 #'   [shape_select()]. Leave `NULL` when using `pattern` or when `x` is already a
 #'   piped selection.
@@ -47,8 +54,11 @@ image_insert <- function(x, image, pattern = NULL, slide_idx = NULL, fixed = TRU
                          fit = "inside", scale = 1,
                          h_just = 0.5, v_just = 0.5,
                          x_offset = 0, y_offset = 0, offset_mode = "source",
+                         rotation = 0, background = "transparent",
+                         line = NULL, alt = "",
                          selection = NULL, empty = c("error", "ignore")) {
   empty <- match.arg(empty)
+  line <- image_insert_normalize_line(line)
   inputs <- image_insert_inputs(x, selection)
   x <- inputs$x
   selection <- inputs$selection
@@ -100,7 +110,11 @@ image_insert <- function(x, image, pattern = NULL, slide_idx = NULL, fixed = TRU
     xml_add_image_after_shape(
       shape = selection$node[[i]],
       img_path = image[[i]],
-      frame = frames[[i]]
+      frame = frames[[i]],
+      rotation = rotation,
+      background = background,
+      line = line,
+      alt = alt
     )
   }
 
@@ -247,6 +261,23 @@ image_insert_common_size <- function(...) {
 }
 
 
+image_insert_normalize_line <- function(line) {
+  if (is.null(line)) {
+    return(NULL)
+  }
+  if (inherits(line, "sp_line")) {
+    return(line)
+  }
+  if (is.character(line) && length(line) == 1L && is.color(line)) {
+    return(officer::sp_line(color = line))
+  }
+  cli::cli_abort(
+    "{.arg line} must be `NULL`, a color string, or an {.fn sp_line} object.",
+    call = NULL
+  )
+}
+
+
 image_insert_validate_selection <- function(selection) {
   if (any(selection$placeholder)) {
     cli::cli_abort(
@@ -303,11 +334,15 @@ image_insert_frames <- function(image, selection, fit, scale, h_just, v_just,
 }
 
 
-xml_add_image_after_shape <- function(shape, img_path, frame) {
+xml_add_image_after_shape <- function(shape, img_path, frame, rotation = 0,
+                                      background = "transparent", line = NULL,
+                                      alt = "") {
   assert_node(shape, argname = "shape")
   assert_frame(frame)
 
+  line <- line %||% officer::sp_line(lwd = 0)
   image <- officer::external_img(img_path)
+  attr(image, "alt") <- alt
   xml <- officer::to_pml(
     x = image,
     left = frame$left,
@@ -316,7 +351,9 @@ xml_add_image_after_shape <- function(shape, img_path, frame) {
     height = frame$height,
     label = basename(img_path),
     ph = "",
-    ln = officer::sp_line(lwd = 0)
+    rot = rotation,
+    bg = background,
+    ln = line
   )
   node <- xml2::read_xml(xml)
   xml2::xml_add_sibling(shape, node, .where = "after")

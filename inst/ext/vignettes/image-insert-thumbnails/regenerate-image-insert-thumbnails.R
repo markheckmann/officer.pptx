@@ -84,4 +84,18 @@ targets <- shape_select(x_inside, name = "Photo marker", match = "contains")
 x_hidden <- shape_update(x_inside, targets, hidden = TRUE)
 save_thumb(x_hidden, 1, "thumb-after-hidden.png")
 
+# --- Thumbnail 5: Styling (rotation, background, line) ---
+x_styled <- image_insert(
+  x,
+  image = img_path,
+  pattern = "{photo_1}",
+  fit = "inside",
+  rotation = 5,
+  background = "#F5F5F5",
+  line = sp_line(color = "#333333", lwd = 2)
+)
+targets_styled <- shape_select(x_styled, name = "Photo marker", match = "contains")
+x_styled <- shape_update(x_styled, targets_styled, hidden = TRUE)
+save_thumb(x_styled, 1, "thumb-after-styled.png")
+
 message("Done. Thumbnails written to: ", out_dir)

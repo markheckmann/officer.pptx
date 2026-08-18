@@ -398,10 +398,17 @@ Use `ph_location_*()` when you are creating new content from a layout. Use `shap
 
 ## Future Extensions
 
-Future functions can build on the same node-level setters to add pictures, replace images, format text runs, reorder shapes, or edit shapes inside groups.
+`image_insert()` is the first function built on shape selection to add new
+content at marker positions. It selects shapes by text or via `shape_select()`,
+then inserts fitted images directly above the targets. See
+`vignette("image-insert")` for the full workflow.
 
 ```{r}
 #| eval: false
-targets <- shape_select(template, text = "{tag_1}")
+targets <- shape_select(template, text = "{photo}")
+template <- image_insert(template, image = "photo.png", selection = targets)
 template <- shape_update(template, targets, hidden = TRUE)
 ```
+
+Future functions can extend the same architecture to format text runs, reorder
+shapes, or edit shapes inside groups.

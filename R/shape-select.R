@@ -87,7 +87,77 @@ pptx_shape_inventory <- function(x, slide_idx = NULL) {
     return(shape_selection_empty())
   }
 
-  dplyr::bind_rows(rows)
+  out <- dplyr::bind_rows(rows)
+  shape_resolve_inherited_geometry(x, out)
+}
+
+
+shape_resolve_inherited_geometry <- function(x, inventory) {
+  needs_resolve <- inventory$placeholder &
+    is.na(inventory$left) &
+    is.na(inventory$top) &
+    is.na(inventory$width) &
+    is.na(inventory$height)
+
+  if (!any(needs_resolve)) {
+    return(inventory)
+  }
+
+  for (i in which(needs_resolve)) {
+    slide_idx <- inventory$slide_idx[[i]]
+    ph_node <- xml_shape_ph(inventory$node[[i]])
+    ph_type <- xml_shape_ph_type(ph_node)
+    ph_idx <- xml2::xml_attr(ph_node, "idx")
+
+    layout_info <- tryCatch(
+      officer:::get_slide_layout(x, slide_idx),
+      error = function(e) NULL
+    )
+    if (is.null(layout_info)) next
+
+    props <- layout_properties(
+      x,
+      layout = layout_info$layout_name,
+      master = layout_info$master_name
+    )
+    props$ph_idx <- shape_ph_idx_from_layout(props$ph)
+
+    match_idx <- shape_match_layout_ph(props, ph_type, ph_idx)
+    if (length(match_idx) == 0L) next
+    match_idx <- match_idx[1L]
+
+    inventory$left[[i]] <- props$offx[[match_idx]]
+    inventory$top[[i]] <- props$offy[[match_idx]]
+    inventory$width[[i]] <- props$cx[[match_idx]]
+    inventory$height[[i]] <- props$cy[[match_idx]]
+    inventory$rotation[[i]] <- props$rotation[[match_idx]]
+  }
+
+  inventory
+}
+
+
+# Extract the idx attribute value from a layout ph definition string.
+shape_ph_idx_from_layout <- function(ph) {
+  stringr::str_match(ph, 'idx="([0-9]+)"')[, 2]
+}
+
+
+# Match a slide placeholder against layout properties by type and idx.
+shape_match_layout_ph <- function(props, ph_type, ph_idx) {
+  type_match <- props$type == ph_type
+  if (!any(type_match)) {
+    return(integer())
+  }
+  if (is.na(ph_idx)) {
+    idx_match <- type_match & is.na(props$ph_idx)
+  } else {
+    idx_match <- type_match & !is.na(props$ph_idx) & props$ph_idx == ph_idx
+  }
+  if (any(idx_match)) {
+    return(which(idx_match))
+  }
+  which(type_match)
 }
 
 

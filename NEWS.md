@@ -3,6 +3,10 @@
 * `image_insert()` now builds on `shape_select()`, supports selected-shape and
   piped workflows, preserves the current slide cursor, and inserts ordinary
   non-placeholder pictures directly above their target shapes.
+* `image_insert()` gains `rotation`, `background`, `line`, and `alt` arguments
+  for styling inserted pictures.
+* `shape_select()` now resolves inherited placeholder geometry from the slide
+  layout when a placeholder has no direct transform on the slide.
 * `shape_add()` and `shape_update()` now write replacement text into DrawingML
   `<a:t>` nodes so text inside created or updated shapes is rendered by
   PowerPoint/LibreOffice.
